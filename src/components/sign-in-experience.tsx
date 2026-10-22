@@ -17,11 +17,13 @@ import type { LocalAdminSignInState } from "@/lib/auth/login-state";
 export function SignInExperience({
   localAdminReady,
   entraReady,
+  samlError,
   signInAction,
   entraSignInAction,
 }: {
   localAdminReady: boolean;
   entraReady: boolean;
+  samlError: boolean;
   signInAction: (
     state: LocalAdminSignInState,
     formData: FormData,
@@ -204,6 +206,13 @@ export function SignInExperience({
               {isRtl ? "התחבר עם Entra ID" : "Continue with Entra ID"}
             </button>
           </form>
+          {samlError && (
+            <p className="sign-in-card__error" role="alert">
+              {isRtl
+                ? "ההתחברות מול Entra נכשלה. יש לבדוק את הגדרות SAML ולנסות שוב."
+                : "Entra sign-in failed. Check the SAML configuration and try again."}
+            </p>
+          )}
           {!entraReady && (
             <p className="sign-in-card__notice" role="status">
               {isRtl

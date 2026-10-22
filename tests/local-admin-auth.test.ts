@@ -63,4 +63,22 @@ describe("local administrator authentication", () => {
 
     expect(isLocalAdminConfigured()).toBe(false);
   });
+
+  it("allows the temporary admin/admin credentials only outside production", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("LOCAL_ADMIN_USERNAME", "");
+    vi.stubEnv("LOCAL_ADMIN_PASSWORD_HASH", "");
+
+    await expect(verifyLocalAdminCredentials("admin", "admin")).resolves.toBe(
+      true,
+    );
+    await expect(verifyLocalAdminCredentials("admin", "wrong")).resolves.toBe(
+      false,
+    );
+
+    vi.stubEnv("NODE_ENV", "production");
+    await expect(verifyLocalAdminCredentials("admin", "admin")).resolves.toBe(
+      false,
+    );
+  });
 });

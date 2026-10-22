@@ -1,26 +1,27 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
+import { createHash } from "node:crypto";
+import { getSamlSettings } from "@/lib/auth/saml-settings";
 import {
   getLocalAdminConfigurationError,
   isLocalAdminConfigured,
   verifyLocalAdminCredentials,
 } from "@/lib/auth/local-admin";
 
-const entraClientId = process.env.ENTRA_CLIENT_ID;
-const entraClientSecret = process.env.ENTRA_CLIENT_SECRET;
-const entraTenantId = process.env.ENTRA_TENANT_ID;
-const entraIssuer = entraTenantId
-  ? `https://login.microsoftonline.com/${entraTenantId}/v2.0`
-  : undefined;
-
-export const isEntraIdConfigured = Boolean(
-  entraClientId && entraClientSecret && entraIssuer,
-);
-
-const authSecretConfigured = Boolean(process.env.AUTH_SECRET);
+const isProduction = process.env.NODE_ENV === "production";
+const authSecret =
+  process.env.AUTH_SECRET ||
+  (!isProduction
+    ? "iec-projects-hub-development-only-auth-secret-do-not-deploy"
+    : undefined);
+const authSecretConfigured = Boolean(authSecret);
+export const isEntraSamlConfigured = getSamlSettings().isConfigured;
+const hasLocalAdminCredentials =
+  Boolean(process.env.LOCAL_ADMIN_USERNAME) ||
+  Boolean(process.env.LOCAL_ADMIN_PASSWORD_HASH);
 export const isLocalAdminEnabled =
-  authSecretConfigured && isLocalAdminConfigured();
+  authSecretConfigured &&
+  (isLocalAdminConfigured() || (!isProduction && !hasLocalAdminCredentials));
 
 const localAdminConfigurationError = getLocalAdminConfigurationError();
 if (localAdminConfigurationError) {
@@ -30,27 +31,73 @@ if (localAdminConfigurationError) {
 }
 
 if (
+  isProduction &&
   !authSecretConfigured &&
-  (isEntraIdConfigured || isLocalAdminConfigured())
+  (isEntraSamlConfigured || isLocalAdminConfigured())
 ) {
   console.error("[auth] Sign-in is disabled until AUTH_SECRET is configured.");
 }
 
 export const isAuthenticationConfigured =
   authSecretConfigured &&
-  (isEntraIdConfigured || isLocalAdminEnabled);
+  (isEntraSamlConfigured || isLocalAdminEnabled);
 
 const providers = [
-  ...(isEntraIdConfigured
+  ...(isEntraSamlConfigured
     ? [
-        MicrosoftEntraID({
-          clientId: entraClientId,
-          clientSecret: entraClientSecret,
-          issuer: entraIssuer,
+        Credentials({
+          id: "entra-saml",
+          name: "Microsoft Entra SAML",
+          credentials: {
+            handoff: { label: "SAML handoff", type: "text" },
+          },
+          async authorize(credentials) {
+            if (
+              typeof credentials.handoff !== "string" ||
+              credentials.handoff.length < 40 ||
+              credentials.handoff.length > 128
+            ) {
+              return null;
+            }
+
+            const key = `handoff:${createHash("sha256")
+              .update(credentials.handoff)
+              .digest("hex")}`;
+            const { SupabaseSamlCache } = await import("@/lib/auth/saml-cache");
+            const payload = await new SupabaseSamlCache().consume(key);
+            if (!payload) return null;
+
+            let identity: unknown;
+            try {
+              identity = JSON.parse(payload);
+            } catch (error) {
+              if (error instanceof SyntaxError) return null;
+              throw error;
+            }
+            if (
+              typeof identity !== "object" ||
+              identity === null ||
+              !("id" in identity) ||
+              typeof identity.id !== "string" ||
+              !identity.id.startsWith("entra-saml:") ||
+              !("name" in identity) ||
+              typeof identity.name !== "string" ||
+              !("email" in identity) ||
+              (identity.email !== null && typeof identity.email !== "string")
+            ) {
+              return null;
+            }
+
+            return {
+              id: identity.id,
+              name: identity.name,
+              email: identity.email ?? undefined,
+            };
+          },
         }),
       ]
     : []),
-  ...(isLocalAdminConfigured()
+  ...(isLocalAdminEnabled
     ? [
         Credentials({
           id: "local-admin",
@@ -60,6 +107,7 @@ const providers = [
             password: { label: "Password", type: "password" },
           },
           async authorize(credentials) {
+            if (!isLocalAdminEnabled) return null;
             if (
               typeof credentials.username !== "string" ||
               typeof credentials.password !== "string" ||
@@ -71,7 +119,9 @@ const providers = [
               return null;
             }
 
-            const username = process.env.LOCAL_ADMIN_USERNAME?.trim();
+            const username =
+              process.env.LOCAL_ADMIN_USERNAME?.trim() ||
+              (!isProduction ? "admin" : undefined);
             if (!username) return null;
             return {
               id: `local-admin:${username}`,
@@ -84,7 +134,7 @@ const providers = [
 ];
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: process.env.AUTH_SECRET,
+  secret: authSecret,
   providers,
   pages: {
     signIn: "/sign-in",

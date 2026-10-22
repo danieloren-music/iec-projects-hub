@@ -1,10 +1,11 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import {
   isAuthenticationConfigured,
-  isEntraIdConfigured,
+  isEntraSamlConfigured,
   isLocalAdminEnabled,
 } from "@/auth";
 import type { LocalAdminSignInState } from "@/lib/auth/login-state";
@@ -47,9 +48,9 @@ export async function signInWithLocalAdmin(
 }
 
 export async function signInWithEntra() {
-  if (!isAuthenticationConfigured || !isEntraIdConfigured) {
-    throw new Error("Microsoft Entra sign-in is not configured.");
+  if (!isAuthenticationConfigured || !isEntraSamlConfigured) {
+    throw new Error("Microsoft Entra SAML sign-in is not configured.");
   }
 
-  await signIn("microsoft-entra-id", { redirectTo: "/" });
+  redirect("/api/auth/saml/login");
 }

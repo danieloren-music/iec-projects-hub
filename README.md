@@ -26,31 +26,16 @@ Copy `.env.example` to `.env.local` and ask the service owners for values using
 their approved secret/configuration channels. Do not commit `.env.local`.
 
 - **Authentication**: Auth.js protects application pages and API routes. A
-  local administrator login works without Entra when `AUTH_SECRET`,
-  `LOCAL_ADMIN_USERNAME`, and `LOCAL_ADMIN_PASSWORD_HASH` are configured. Set
-  the username to `admin` or `root` as needed; the application contains no
-  admin password. Generate a salted scrypt hash through a hidden terminal
-  prompt with `npm run auth:hash-admin`, then place the resulting hash only in
-  `.env.local` or the hosting provider's secret store. Use a long, unique
-  password and protect public deployments with network controls and login
-  rate-limiting.
-
-  Microsoft Entra ID sign-in remains an optional OpenID Connect provider through
-  Auth.js. Configure `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, and
-  `ENTRA_TENANT_ID` to enable it. Register these Web redirect URIs in Entra:
-  `http://localhost:3000/api/auth/callback/microsoft-entra-id` and
-  `https://<your-vercel-domain>/api/auth/callback/microsoft-entra-id`.
-  `AUTH_SECRET` is a separate random key used by Auth.js to protect sessions,
-  not a Microsoft credential. Generate it using the command in `.env.example`
-  and store it in local and deployment secret settings. The application trusts
-  its configured hosting proxy; no extra `AUTH_TRUST_HOST` value is required.
-  The root URL (`/`) is protected and redirects signed-out users to `/sign-in`.
-  The configured local account can be named `admin` or `root`; the current
-  application does not yet enforce a separate PMO role/permission matrix.
-  This Entra button currently uses OIDC, not SAML. Entra SAML configuration
-  alone will not make this application accept SAML assertions. Read
-  [`docs/entra-saml-setup.md`](./docs/entra-saml-setup.md) before choosing a
-  broker or implementing a SAML service provider.
+  **development only**, `admin` / `admin` works without environment variables.
+  This fallback is disabled whenever `NODE_ENV=production`. For production
+  local-admin access, set `AUTH_SECRET`, `LOCAL_ADMIN_USERNAME`, and
+  `LOCAL_ADMIN_PASSWORD_HASH`; generate a salted scrypt hash with
+  `npm run auth:hash-admin`. The Entra SAML setup and exact Vercel endpoints are
+  in [`docs/entra-saml-setup.md`](./docs/entra-saml-setup.md). Set the IdP SSO
+  URL, issuer, and signing certificate in Vercel environment variables; SAML
+  request/replay state is stored in Supabase so it works across serverless
+  instances. Production also needs `AUTH_SECRET` and the Supabase service-role
+  key. Never commit either secret.
 - **Database**: Supabase PostgreSQL uses the server-side adapter and the
   existing project conventions. Set `NEXT_PUBLIC_SUPABASE_URL` and
   `NEXT_PUBLIC_SUPABASE_ANON_KEY` only after the owner reviews the database
@@ -109,4 +94,5 @@ scanning is not configured.
 ## Hosting
 
 Vercel is the current application host. Apply the Supabase migrations before
-enabling task management and private project-file storage.
+enabling task management, private project-file storage, and Entra SAML
+(`20261022162000_saml_auth_state.sql`).

@@ -1,66 +1,84 @@
 # Microsoft Entra SAML setup
 
-## What is supported today
+The application now acts as a SAML 2.0 Service Provider (SP) using Node-SAML.
+It verifies Entra response and assertion signatures, issuer, audience,
+timestamps, request correlation, and one-time relay state. Request state is
+stored in Supabase, not memory, so sign-in works across Vercel instances.
 
-The sign-in page supports the configured local username/password credential
-and Microsoft Entra ID through Auth.js OpenID Connect (OIDC). It does not
-currently implement a SAML service provider (SP), ACS endpoint, assertion
-validation, or SAML session exchange. Do not configure the Entra button as SAML
-or label an OIDC login as SAML.
+## Exact values for this application
 
-If the organization requires SAML, choose one of these integration paths:
+In **Microsoft Entra admin center → Enterprise applications → New application
+→ Create your own application → Set up single sign-on → SAML**, configure:
 
-1. **Recommended for this application:** use an organization-approved identity
-   broker that accepts Entra SAML and exposes OIDC to this Next.js app. Configure
-   the Entra Enterprise Application as a SAML identity provider for the broker,
-   then configure Auth.js with the broker's OIDC issuer/client values. The app's
-   Auth.js provider must be configured for the broker before switching the
-   Entra button.
-2. **Direct SAML:** implement and security-review a SAML SP for the app before
-   configuring Entra. The SP must validate signed assertions against the
-   tenant signing certificate, issuer, audience, recipient, destination,
-   `InResponseTo`, time conditions and NameID; enforce one-time request/replay
-   state in shared persistent storage; and exchange the validated identity into
-   the application's Auth.js session. An in-memory state store is not suitable
-   for multiple Vercel instances or serverless cold starts.
+| Entra SAML field | Value |
+| --- | --- |
+| **Identifier (Entity ID)** | `https://iec-projects-hub.vercel.app/api/auth/saml/metadata` |
+| **Reply URL (Assertion Consumer Service URL)** | `https://iec-projects-hub.vercel.app/api/auth/saml/acs` |
+| **Sign on URL** | `https://iec-projects-hub.vercel.app/api/auth/saml/login` |
+| **Relay State** | Leave blank |
+| **Logout URL** | Leave blank; SAML single logout is not implemented |
 
-## Entra configuration steps
+The Entity ID and Reply URL are case-sensitive. Do not put the site's root URL
+or an OIDC callback URL into these fields. The app's public SP metadata is also
+available at
+[`https://iec-projects-hub.vercel.app/api/auth/saml/metadata`](https://iec-projects-hub.vercel.app/api/auth/saml/metadata)
+after its SAML environment values and Supabase storage migration are set.
 
-Do this after the chosen broker or SP provides the final SP metadata, **Entity
-ID**, **ACS/Reply URL**, and (if required) logout URL. These values are
-environment-specific; do not invent them or use an OIDC callback URL as the
-SAML ACS URL.
+## Entra signing and claims
 
-1. In Microsoft Entra admin center, create or select the Enterprise Application
-   for the broker/SP and open **Single sign-on → SAML**.
-2. In **Basic SAML Configuration**, set the Identifier to the SP Entity ID and
-   the Reply URL to the SP ACS URL. Add the Sign-on URL and Logout URL only
-   when the SP/broker supplies them.
-3. In **Attributes & Claims**, release only the required stable identifier and
-   email/display-name attributes. Prefer a stable immutable user identifier
-   for account linking; do not use an unverified email claim as the sole
-   authorization check.
-4. Download the Entra federation metadata XML and signing certificate through
-   the approved organization process. Configure the broker/SP with the tenant
-   issuer, SSO URL, metadata, and certificate. Pin and rotate certificates
-   through the selected provider's supported process.
-5. Test login/logout and negative cases in a non-production Vercel environment:
-   invalid signature, wrong audience/issuer, expired assertion, reused
-   assertion, and an unassigned user. Confirm the app never creates a session
-   from an unvalidated assertion.
-6. Only after the broker/SP implementation and tests are deployed should the
-   Entra login action be switched from OIDC to SAML.
+1. Under **SAML Signing Certificate**, set **Signing Option** to **Sign SAML
+   response and assertion**, then save. The SP requires both signatures.
+2. Under **Attributes & Claims**, set the **Unique User Identifier (Name ID)**
+   source to `user.objectid` and the Name ID format to **Persistent**, if
+   available in your tenant. This keeps the application's account ID stable if
+   a user's email address changes.
+3. Ensure the assertion releases an email-address claim (standard
+   `emailaddress` or `mail`) and preferably a `name`/display-name claim. The
+   app uses these for display and task assignment; the immutable Name ID is used
+   as the identity key.
+4. Save the Entra SAML configuration. Copy the **Microsoft Entra Identifier**
+   (IdP issuer), **Login URL** (IdP SSO URL), and download the **Certificate
+   (Base64)** file. Do not use the App Federation Metadata URL as the issuer or
+   Login URL. Metadata is an XML document; the app settings below expect its
+   individual values, not the whole XML file.
 
-## Current supported Entra OIDC values
+## Configure Vercel and Supabase
 
-Until a broker or direct SAML SP is implemented, the existing Entra button uses
-OIDC. In the app registration, add these Web redirect URIs:
+1. In the Supabase SQL Editor for the same project used by the app, run
+   [`supabase/migrations/20261022162000_saml_auth_state.sql`](../supabase/migrations/20261022162000_saml_auth_state.sql).
+   The app uses this protected table for request IDs, RelayState, and short-lived
+   one-time session handoffs. No RLS access is granted to `anon` or
+   `authenticated`.
+2. In Vercel **Project → Settings → Environment Variables**, add these for the
+   Production environment:
 
-- `http://localhost:3000/api/auth/callback/microsoft-entra-id`
-- `https://<your-vercel-domain>/api/auth/callback/microsoft-entra-id`
+   | Name | Value |
+   | --- | --- |
+   | `ENTRA_SAML_BASE_URL` | `https://iec-projects-hub.vercel.app` |
+   | `ENTRA_SAML_ENTRY_POINT` | The Entra **Login URL** |
+   | `ENTRA_SAML_IDP_ISSUER` | The Entra **Microsoft Entra Identifier** |
+   | `ENTRA_SAML_IDP_CERT` | The complete Base64 body from the downloaded `.cer` file, or its PEM certificate |
+   | `AUTH_SECRET` | A new random secret generated for Auth.js |
+   | `NEXT_PUBLIC_SUPABASE_URL` | The app's Supabase project URL |
+   | `SUPABASE_SERVICE_ROLE_KEY` | The service-role key for that same Supabase project |
 
-Set `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_TENANT_ID`, and
-`AUTH_SECRET` in the local secret store and Vercel project environment. Never
-put credentials or certificates in GitHub source, issue comments, or this
-document. Keep GitHub as the source repository, Vercel as the app host, and
-Supabase as the data and file-storage service.
+   The certificate is a public signing certificate, not a private key. Store it
+   as an environment variable for easier rotation; do not commit it or the XML
+   metadata to GitHub. The Supabase service-role key and `AUTH_SECRET` are
+   secrets and must never be exposed to browser code.
+3. Set the existing Supabase anon-key variable as already required for the app.
+   Generate `AUTH_SECRET` locally with
+   `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`
+   and enter the output directly in Vercel; do not put the value in source
+   control. **Redeploy** after adding/updating Vercel variables.
+4. After deployment, open the SP metadata URL above and confirm it returns XML
+   with the exact Entity ID and `/api/auth/saml/acs` POST endpoint. In Entra,
+   use **Test single sign-on** and then test the actual application's **התחבר
+   עם Entra ID** button.
+5. Test failure cases too: a changed/wrong signing certificate, wrong audience,
+   expired assertion, and submitting the same SAML response twice must not
+   create a session.
+
+For local `admin` / `admin`, run `npm run dev`; the fallback is enabled only
+outside production and only when no local-admin environment credentials have
+been supplied. It is intentionally disabled for Vercel/production.
