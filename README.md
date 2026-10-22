@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IEC Projects Hub
 
-## Getting Started
+Next.js 16.4.2 App Router application for the IEC PMO portfolio. The existing
+Vercel deployment path and Supabase PostgreSQL data service remain the current
+POC architecture. Hosting on Azure is a separate future decision; this
+repository does not provision or deploy cloud resources.
 
-First, run the development server:
+## Local development
 
-```bash
+Use Node.js 22 or newer and npm:
+
+```sh
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app is served at `http://localhost:3000`. Run checks with:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```sh
+npm run lint
+npm test
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Configuration
 
-## Learn More
+Copy `.env.example` to `.env.local` and ask the service owners for values using
+their approved secret/configuration channels. Do not commit `.env.local`.
 
-To learn more about Next.js, take a look at the following resources:
+- **Authentication**: Microsoft Entra ID OpenID Connect through Auth.js.
+  Configure `AUTH_SECRET`, trusted-host handling (`AUTH_TRUST_HOST=true` only
+  behind a trusted host/proxy), and the Entra client ID, client secret, and
+  issuer. The callback URI is
+  `http://localhost:3000/api/auth/callback/microsoft-entra-id`. No SAML or
+  local-password flow is implemented.
+- **Database**: Supabase PostgreSQL uses the server-side adapter and the
+  existing project conventions. Set `NEXT_PUBLIC_SUPABASE_URL` and
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` only after the owner reviews the database
+  access policies and confirms that row-level security protects the data. The
+  app does not use a service-role key.
+- **Optional Lin**: Gemini calls stay disabled unless `GEMINI_API_KEY` is set
+  and external AI use is explicitly enabled with
+  `LIN_EXTERNAL_AI_ENABLED=true`. Lin does not receive internal project
+  records.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+All environment values are placeholders in `.env.example`; no tenant details,
+credentials, database connection values, or production records are included.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## PMO model status
 
-## Deploy on Vercel
+The existing source establishes project and `infra_requirements` field
+conventions. Task fields, approved status vocabularies, entity relationships,
+RBAC roles and permission rules, audit requirements, and assignment/date rules
+remain unconfirmed. Project and infrastructure reads are isolated behind the
+repository layer. The frontend uses same-origin API reads for projects and
+infrastructure. Task reads and all PMO create/update routes remain disabled
+until those contracts are confirmed. No production schema migrations or seed
+records are included.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Hosting
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Vercel remains the current POC host. No deployment is performed by this
+repository scaffold. Choose Azure hosting and any data migration separately
+before moving the application.
