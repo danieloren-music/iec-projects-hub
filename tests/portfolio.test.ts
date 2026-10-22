@@ -81,11 +81,17 @@ describe("portfolio model", () => {
       ).toBe(false);
     });
 
-    it("scopes object paths to one project and a generated upload id", () => {
+    it("scopes sanitized object paths to one project and a generated upload id", () => {
       const uploadId = "a9b5774c-ff5a-4f60-84dc-5a950bf06d6b";
       expect(
         isProjectAttachmentPath("project-42", `project-42/${uploadId}/plan.pdf`),
       ).toBe(true);
+      expect(
+        isProjectAttachmentPath("project-42", `project-42/${uploadId}/script.exe`),
+      ).toBe(false);
+      expect(
+        isProjectAttachmentPath("project-42", `project-42/${uploadId}/../plan.pdf`),
+      ).toBe(false);
       expect(
         isProjectAttachmentPath("project-43", `project-42/${uploadId}/plan.pdf`),
       ).toBe(false);

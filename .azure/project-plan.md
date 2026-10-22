@@ -55,7 +55,7 @@ Keep the existing Next.js Route Handlers as the POC API; this is not an Azure Fu
 |---------------|------------|---------------------|----------------------|----------------|
 | Vercel (external to Azure; current host) | Host the existing Next.js POC | — | `npm run dev` | Essential |
 | Supabase PostgreSQL (external to Azure; current datastore) | Primary relational persistence for project, task, and infrastructure tracking | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Set locally in `.env.local` from the user's Supabase project; no committed fallback | Essential |
-| Supabase Storage (external to Azure; current file storage) | Private project attachments bucket for authorized uploads and short-lived downloads | `SUPABASE_SERVICE_ROLE_KEY` (server-only) | Apply `supabase/migrations/20261022153000_project_attachments.sql`; configure the service key outside source control | Essential |
+| Vercel Blob (external to Azure; current file storage) | Private project attachments with authenticated client uploads and server-streamed downloads | `BLOB_READ_WRITE_TOKEN` | Create a private Blob store connected to the Vercel project; apply `supabase/migrations/20261022153000_project_attachments.sql` for metadata | Essential |
 | Google Gemini API (external to Azure; optional) | Optional Lin project Q&A; enhancement only | `GEMINI_API_KEY` | Unset; keep Lin unavailable until configured | Enhancement |
 
 No Azure service is required for the current Vercel-hosted POC. Choose an Azure hosting service and any related migration work during a separate future Azure deployment plan; do not treat Vercel or Supabase as Azure resources.
@@ -173,6 +173,7 @@ iec-projects-hub/
 │   │   │   ├── tasks/[taskId]/route.ts   # Planned
 │   │   │   ├── infrastructure-requirements/route.ts # Planned
 │   │   │   ├── projects/[projectId]/attachments/route.ts # Planned
+│   │   │   ├── projects/[projectId]/attachments/upload/route.ts # Planned
 │   │   │   └── projects/[projectId]/attachments/[attachmentId]/download/route.ts # Planned
 │   │   │   └── lin/route.ts              # Existing; review before extending
 │   │   ├── infrastructure/page.tsx       # Planned
@@ -193,7 +194,7 @@ iec-projects-hub/
 │   └── messages/                          # Planned English/Hebrew UI resources
 ├── tests/                                 # Planned unit/component/API tests
 ├── supabase/
-│   └── migrations/                        # Project-attachment metadata and private bucket setup only
+│   └── migrations/                        # Project-attachment metadata only
 ├── package.json                           # Existing; add test script/config when implementing
 └── .env.example                            # Planned; names only, never real credentials
 ```
@@ -218,8 +219,9 @@ iec-projects-hub/
 | 12 | PATCH | `/api/infrastructure-requirements/{requirementId}` | Update a requirement using confirmed fields | Requirement patch (schema to confirm) | `{ requirement }` | 200, 400, 404, 409, 422, 500 |
 | 13 | POST | `/api/lin` | Optional Lin Q&A endpoint; retain the existing route shape and make availability configuration-dependent | `{ prompt }` | `{ reply }` | 200, 400, 500, 503 |
 | 14 | GET | `/api/projects/{projectId}/attachments` | List private attachments for an existing project | — | `{ attachments }` | 200, 401, 404, 503 |
-| 15 | POST | `/api/projects/{projectId}/attachments` | Create a signed upload URL or register an uploaded file | `{ filename, contentType, sizeBytes }` or `{ path }` | `{ upload }` or `{ attachment }` | 201, 400, 401, 404, 503 |
-| 16 | GET | `/api/projects/{projectId}/attachments/{attachmentId}/download` | Redirect to a short-lived signed download URL | — | Redirect | 302, 401, 404, 503 |
+| 15 | POST | `/api/projects/{projectId}/attachments` | Register a completed uploaded file | `{ path }` | `{ attachment }` | 201, 400, 401, 404, 503 |
+| 16 | POST | `/api/projects/{projectId}/attachments/upload` | Authorize a private Vercel Blob client upload | Vercel Blob upload event | Upload token | 200, 400, 401, 404, 503 |
+| 17 | GET | `/api/projects/{projectId}/attachments/{attachmentId}/download` | Stream a private file after authorization | — | File response | 200, 401, 404, 503 |
 
 Use the shared error response shape `{ "error": { "code": "NOT_FOUND", "message": "Item not found", "details": null } }`, with the applicable standard error code for validation, malformed input, missing resources, conflicts, and unhandled errors. The concrete payload schemas remain subject to the confirmation items in Section 6.
 
@@ -227,8 +229,9 @@ Use the shared error response shape `{ "error": { "code": "NOT_FOUND", "message"
 
 ## 9. Next Steps
 
-1. Run the project-attachment SQL migration in the Supabase SQL Editor and configure its service key as a server-only secret.
-2. Configure Entra ID OIDC and Supabase using deployment secrets; never commit credentials.
-3. Confirm PMO entities, status vocabulary, relationships, roles, permissions, and audit requirements before adding PMO migrations or write operations.
-4. Keep project files limited to trusted organization-wide content until project-level authorization and malware scanning are defined.
-5. Plan Azure hosting and any provider/data migration separately; do not provision or deploy without explicit authorization.
+1. Create a private Vercel Blob store, connect it to the Vercel project, and configure its token for local development.
+2. Run the project-attachment metadata SQL migration in the Supabase SQL Editor and configure its service key as a server-only secret.
+3. Configure Entra ID OIDC and Supabase using deployment secrets; never commit credentials.
+4. Confirm PMO entities, status vocabulary, relationships, roles, permissions, and audit requirements before adding PMO migrations or write operations.
+5. Keep project files limited to trusted organization-wide content until project-level authorization and malware scanning are defined.
+6. Plan Azure hosting and any provider/data migration separately; do not provision or deploy without explicit authorization.

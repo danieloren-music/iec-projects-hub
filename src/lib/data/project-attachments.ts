@@ -1,12 +1,12 @@
 import "server-only";
 
+import { BlobNotFoundError, get, head } from "@vercel/blob";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { DataSourceUnavailableError } from "@/lib/data/portfolio-repository";
 import {
   isProjectAttachmentPath,
   normalizeAttachmentUpload,
-  PROJECT_ATTACHMENTS_BUCKET,
   MAX_PROJECT_ATTACHMENT_SIZE,
   ProjectAttachmentListSchema,
   ProjectAttachmentSchema,
@@ -16,7 +16,7 @@ import {
 
 const AttachmentPathSchema = z.string().min(1).max(512);
 
-function getStorageAdminClient(): SupabaseClient | null {
+function getAttachmentMetadataClient(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -33,11 +33,11 @@ function getStorageAdminClient(): SupabaseClient | null {
   });
 }
 
-function requireStorageClient(): SupabaseClient {
-  const client = getStorageAdminClient();
+function requireAttachmentMetadataClient(): SupabaseClient {
+  const client = getAttachmentMetadataClient();
   if (!client) {
     throw new DataSourceUnavailableError(
-      "Project file storage is not configured.",
+      "Project file metadata is not configured.",
     );
   }
   return client;
@@ -46,7 +46,7 @@ function requireStorageClient(): SupabaseClient {
 export async function listProjectAttachments(
   projectId: string,
 ): Promise<ProjectAttachment[]> {
-  const client = requireStorageClient();
+  const client = requireAttachmentMetadataClient();
   const { data, error } = await client
     .from("project_attachments")
     .select(
@@ -63,27 +63,6 @@ export async function listProjectAttachments(
   }
 
   return ProjectAttachmentListSchema.parse(data ?? []);
-}
-
-export async function createProjectAttachmentUpload(
-  projectId: string,
-  input: unknown,
-): Promise<{ path: string; token: string; contentType: string }> {
-  const upload = normalizeAttachmentUpload(
-    ProjectAttachmentUploadSchema.parse(input),
-  );
-  const path = `${projectId}/${crypto.randomUUID()}/${upload.safeFilename}`;
-  const { data, error } = await requireStorageClient()
-    .storage.from(PROJECT_ATTACHMENTS_BUCKET)
-    .createSignedUploadUrl(path, { upsert: false });
-
-  if (error) {
-    throw new DataSourceUnavailableError(
-      "A secure upload link could not be created.",
-    );
-  }
-
-  return { path: data.path, token: data.token, contentType: upload.contentType };
 }
 
 export async function completeProjectAttachmentUpload(
@@ -110,25 +89,33 @@ export async function completeProjectAttachmentUpload(
       sizeBytes: 1,
     }),
   );
-  const client = requireStorageClient();
-  const { data: fileInfo, error: infoError } = await client
-    .storage.from(PROJECT_ATTACHMENTS_BUCKET)
-    .info(path);
-
-  if (
-    infoError ||
-    !fileInfo.size ||
-    fileInfo.size > MAX_PROJECT_ATTACHMENT_SIZE
-  ) {
-    throw new DataSourceUnavailableError(
-      "The uploaded file is missing or exceeds the permitted size.",
-    );
+  let fileInfo;
+  try {
+    fileInfo = await head(path);
+  } catch (error) {
+    if (error instanceof BlobNotFoundError) {
+      throw new z.ZodError([
+        {
+          code: "custom",
+          path: ["path"],
+          message: "The uploaded file could not be found.",
+        },
+      ]);
+    }
+    throw error;
   }
 
-  if (
-    fileInfo.contentType &&
-    fileInfo.contentType !== upload.contentType
-  ) {
+  if (!fileInfo.size || fileInfo.size > MAX_PROJECT_ATTACHMENT_SIZE) {
+    throw new z.ZodError([
+      {
+        code: "custom",
+        path: ["path"],
+        message: "The uploaded file exceeds the permitted size.",
+      },
+    ]);
+  }
+
+  if (fileInfo.contentType !== upload.contentType) {
     throw new z.ZodError([
       {
         code: "custom",
@@ -138,6 +125,7 @@ export async function completeProjectAttachmentUpload(
     ]);
   }
 
+  const client = requireAttachmentMetadataClient();
   const { data, error } = await client
     .from("project_attachments")
     .insert({
@@ -163,14 +151,18 @@ export async function completeProjectAttachmentUpload(
   return ProjectAttachmentSchema.parse(data);
 }
 
-export async function getProjectAttachmentDownloadUrl(
+export async function getProjectAttachmentDownload(
   projectId: string,
   attachmentId: string,
-): Promise<string | null> {
-  const client = requireStorageClient();
+): Promise<{
+  stream: ReadableStream<Uint8Array>;
+  contentType: string;
+  filename: string;
+} | null> {
+  const client = requireAttachmentMetadataClient();
   const { data: row, error: queryError } = await client
     .from("project_attachments")
-    .select("storage_path, filename")
+    .select("storage_path, filename, content_type")
     .eq("project_id", projectId)
     .eq("id", attachmentId)
     .maybeSingle();
@@ -184,15 +176,14 @@ export async function getProjectAttachmentDownloadUrl(
     return null;
   }
 
-  const { data, error } = await client
-    .storage.from(PROJECT_ATTACHMENTS_BUCKET)
-    .createSignedUrl(row.storage_path, 60, { download: row.filename });
-
-  if (error) {
-    throw new DataSourceUnavailableError(
-      "A secure download link could not be created.",
-    );
+  const blob = await get(row.storage_path, { access: "private" });
+  if (!blob?.stream) {
+    return null;
   }
 
-  return data.signedUrl;
+  return {
+    stream: blob.stream,
+    contentType: row.content_type,
+    filename: row.filename,
+  };
 }

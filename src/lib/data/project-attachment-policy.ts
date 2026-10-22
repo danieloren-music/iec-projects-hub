@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-export const PROJECT_ATTACHMENTS_BUCKET = "project-documents";
 export const MAX_PROJECT_ATTACHMENT_SIZE = 6 * 1024 * 1024;
 export const PROJECT_ATTACHMENT_ACCEPT =
   ".csv,.doc,.docx,.jpg,.jpeg,.json,.md,.pdf,.png,.ppt,.pptx,.txt,.xls,.xlsx,.yaml,.yml,.zip";
@@ -46,14 +45,6 @@ export const ProjectAttachmentSchema = z.object({
 });
 
 export const ProjectAttachmentListSchema = z.array(ProjectAttachmentSchema);
-export const ProjectAttachmentUploadUrlSchema = z.object({
-  upload: z.object({
-    path: z.string().min(1),
-    token: z.string().min(1),
-    contentType: z.string().min(1),
-  }),
-});
-
 export type ProjectAttachment = z.infer<typeof ProjectAttachmentSchema>;
 export type ProjectAttachmentUpload = z.infer<
   typeof ProjectAttachmentUploadSchema
@@ -111,11 +102,27 @@ export function isProjectAttachmentPath(
   path: string,
 ): boolean {
   const [pathProjectId, uploadId, filename, ...extra] = path.split("/");
-  return (
+  if (
     pathProjectId === projectId &&
     z.string().uuid().safeParse(uploadId).success &&
     typeof filename === "string" &&
     filename.length > 0 &&
     extra.length === 0
-  );
+  ) {
+    const parsed = ProjectAttachmentUploadSchema.safeParse({
+      filename,
+      contentType: "",
+      sizeBytes: 1,
+    });
+    if (!parsed.success) return false;
+
+    try {
+      return normalizeAttachmentUpload(parsed.data).safeFilename === filename;
+    } catch (error) {
+      if (error instanceof z.ZodError) return false;
+      throw error;
+    }
+  }
+
+  return false;
 }

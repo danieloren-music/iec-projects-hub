@@ -3,7 +3,6 @@ import { apiError } from "@/lib/api/errors";
 import { withExistingProject } from "@/lib/api/project-attachment-scope";
 import {
   completeProjectAttachmentUpload,
-  createProjectAttachmentUpload,
   listProjectAttachments,
 } from "@/lib/data/project-attachments";
 
@@ -36,21 +35,12 @@ export async function POST(
       throw error;
     }
 
-    if (
-      typeof body === "object" &&
-      body !== null &&
-      "path" in body
-    ) {
-      const { path } = CompleteUploadSchema.parse(body);
-      const attachment = await completeProjectAttachmentUpload(
-        projectId,
-        path,
-        user,
-      );
-      return Response.json({ attachment }, { status: 201 });
-    }
-
-    const upload = await createProjectAttachmentUpload(projectId, body);
-    return Response.json({ upload }, { status: 201 });
+    const { path } = CompleteUploadSchema.parse(body);
+    const attachment = await completeProjectAttachmentUpload(
+      projectId,
+      path,
+      user,
+    );
+    return Response.json({ attachment }, { status: 201 });
   });
 }

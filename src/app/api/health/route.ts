@@ -14,6 +14,7 @@ export async function GET(request: Request) {
           ? "configured"
           : "unconfigured",
       projectFileStorage:
+        process.env.BLOB_READ_WRITE_TOKEN &&
         process.env.NEXT_PUBLIC_SUPABASE_URL &&
         process.env.SUPABASE_SERVICE_ROLE_KEY
           ? "configured"
