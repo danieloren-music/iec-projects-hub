@@ -13,6 +13,11 @@ export async function GET(request: Request) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
           ? "configured"
           : "unconfigured",
+      projectFileStorage:
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+          ? "configured"
+          : "unavailable",
       lin:
         process.env.LIN_EXTERNAL_AI_ENABLED === "true" &&
         Boolean(process.env.GEMINI_API_KEY)

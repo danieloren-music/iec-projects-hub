@@ -45,6 +45,23 @@ const spec = {
         security: [{ sessionCookie: [] }],
       },
     },
+    "/api/projects/{projectId}/attachments": {
+      get: {
+        summary: "List private files attached to a project",
+        security: [{ sessionCookie: [] }],
+      },
+      post: {
+        summary:
+          "Create a signed upload URL or register a completed project-file upload",
+        security: [{ sessionCookie: [] }],
+      },
+    },
+    "/api/projects/{projectId}/attachments/{attachmentId}/download": {
+      get: {
+        summary: "Redirect to a short-lived private project-file download",
+        security: [{ sessionCookie: [] }],
+      },
+    },
     "/api/tasks": {
       get: {
         summary: "Disabled until PMO task schema is confirmed",

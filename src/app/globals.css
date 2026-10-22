@@ -685,6 +685,79 @@ input:focus-visible {
   font-size: 12px;
 }
 
+.project-attachments {
+  margin-top: 15px;
+}
+
+.project-attachments__upload {
+  gap: 8px;
+}
+
+.project-attachments__input {
+  display: none;
+}
+
+.project-attachments__hint {
+  margin: 0 16px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.project-attachments__message {
+  margin: 0 16px 12px;
+  color: var(--primary);
+  font-size: 13px;
+}
+
+.project-attachments__message--error {
+  color: var(--danger, #b42318);
+}
+
+.project-attachments__list {
+  display: grid;
+  margin: 0;
+  padding: 0 16px;
+  list-style: none;
+}
+
+.project-attachments__item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.project-attachments__file-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--primary);
+  background: var(--surface-soft);
+}
+
+.project-attachments__file {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+}
+
+.project-attachments__file strong {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.project-attachments__file small {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .workspace-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);

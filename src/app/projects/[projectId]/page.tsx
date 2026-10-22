@@ -8,6 +8,7 @@ import { api } from '@/api';
 import { useApiResource } from '@/api/use-api-resource';
 import { ApiErrorState, ApiLoading } from '@/components/api-state';
 import { EmptyState, PageHeading, useAppUi } from '@/components/app-shell';
+import { ProjectAttachments } from '@/components/project-attachments';
 
 function ProjectWorkspaceContent() {
   const { isRtl } = useAppUi();
@@ -106,6 +107,7 @@ function ProjectWorkspaceContent() {
           )}
         </section>
       </div>
+      <ProjectAttachments projectId={projectId} />
     </>
   );
 }
