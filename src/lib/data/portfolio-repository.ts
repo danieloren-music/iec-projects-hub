@@ -2,8 +2,10 @@ import "server-only";
 
 import {
   InfrastructureRequirementSchema,
+  ProjectCreateSchema,
   ProjectListSchema,
   type InfrastructureRequirementRecord,
+  type ProjectCreateInput,
   type ProjectRecord,
 } from "@/lib/data/project-model";
 import { getSupabaseServerClient } from "@/lib/data/supabase";
@@ -17,6 +19,7 @@ export class DataSourceUnavailableError extends Error {
 
 export interface PortfolioRepository {
   listProjects(): Promise<ProjectRecord[]>;
+  createProject(input: ProjectCreateInput): Promise<ProjectRecord>;
   getProjectById(projectId: string): Promise<ProjectRecord | null>;
   listInfrastructureRequirements(): Promise<
     InfrastructureRequirementRecord[]
@@ -39,6 +42,34 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     }
 
     return ProjectListSchema.parse(data ?? []);
+  }
+
+  async createProject(input: ProjectCreateInput): Promise<ProjectRecord> {
+    const client = getSupabaseServerClient();
+    if (!client) {
+      throw new DataSourceUnavailableError();
+    }
+
+    const { data, error } = await client
+      .from("projects")
+      .insert(ProjectCreateSchema.parse(input))
+      .select("*, infra_requirements(*)")
+      .single();
+
+    if (error) {
+      throw new DataSourceUnavailableError(
+        "Project could not be created. Verify that the projects table accepts a name and generates its id.",
+      );
+    }
+
+    const project = ProjectListSchema.element.safeParse(data);
+    if (!project.success || project.data.id == null) {
+      throw new DataSourceUnavailableError(
+        "The project was created, but its generated identifier could not be verified.",
+      );
+    }
+
+    return project.data;
   }
 
   async getProjectById(projectId: string): Promise<ProjectRecord | null> {

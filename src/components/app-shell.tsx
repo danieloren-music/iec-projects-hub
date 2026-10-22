@@ -28,15 +28,19 @@ import {
   useEffect,
   useState,
 } from 'react';
+import {
+  type Language,
+  useLanguagePreference,
+} from '@/components/language-preference';
 
-export type Language = 'en' | 'he';
+export type { Language } from '@/components/language-preference';
 
 type AppUi = {
   language: Language;
   isRtl: boolean;
 };
 
-const AppUiContext = createContext<AppUi>({ language: 'en', isRtl: false });
+const AppUiContext = createContext<AppUi>({ language: 'he', isRtl: true });
 
 export function useAppUi() {
   return useContext(AppUiContext);
@@ -145,23 +149,18 @@ export function AppShell({
   signOutAction: () => Promise<void>;
 }) {
   const pathname = usePathname();
-  const [language, setLanguage] = useState<Language>('en');
+  const { language, isRtl, setLanguage } = useLanguagePreference();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [linOpen, setLinOpen] = useState(false);
-  const isRtl = language === 'he';
 
   useEffect(() => {
-    document.documentElement.lang = language;
-    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    window.localStorage.setItem('iec-hub-language', language);
     window.localStorage.setItem('iec-hub-theme', theme);
-  }, [language, isRtl, theme]);
+  }, [theme]);
 
   const copy = {
     subtitle: isRtl ? 'סביבת ניהול תיק הפרויקטים' : 'Project portfolio workspace',
     language: isRtl ? 'English' : 'עברית',
-    signIn: isRtl ? 'התחברות' : 'Sign in',
     theme: isRtl ? 'החלפת ערכת נושא' : 'Toggle color theme',
     lin: isRtl ? 'Lin' : 'Lin',
     demo: isRtl ? 'נתוני הדגמה סינתטיים כבויים' : 'Synthetic demo data is off',
@@ -174,7 +173,7 @@ export function AppShell({
     <AppUiContext.Provider value={{ language, isRtl }}>
       <FluentProvider theme={theme === 'dark' ? webDarkTheme : webLightTheme}>
       <div className="app-shell" data-theme={theme} dir={isRtl ? 'rtl' : 'ltr'}>
-        <header className="topbar">
+        <header className="topbar" dir="ltr">
           <Link href="/" className="brand" aria-label="IEC Projects Hub home">
             <span className="brand__mark"><Layers3 size={20} /></span>
             <span className="brand__copy">
@@ -182,16 +181,14 @@ export function AppShell({
               <small>{copy.subtitle}</small>
             </span>
           </Link>
-          <div className="topbar__actions">
+          <div className="topbar__actions" dir="ltr">
             <span className="demo-indicator"><span className="demo-indicator__dot" />{copy.demo}</span>
-            {currentUser ? (
+            {currentUser && (
               <form action={signOutAction}>
                 <Button appearance="subtle" className="control-button" type="submit">
                   {currentUser.name || currentUser.email || (isRtl ? 'התנתקות' : 'Sign out')}
                 </Button>
               </form>
-            ) : (
-              <Link href="/sign-in" className="control-button">{copy.signIn}</Link>
             )}
             <Button appearance="subtle" className="control-button" onClick={() => setLanguage(isRtl ? 'en' : 'he')} aria-label={copy.language}>
               <Globe2 size={16} /><span>{copy.language}</span>

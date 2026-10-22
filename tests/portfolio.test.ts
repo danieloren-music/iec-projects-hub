@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ProjectCreateSchema,
   ProjectSchema,
   summarizePortfolio,
 } from "../src/lib/data/project-model";
@@ -39,6 +40,16 @@ describe("portfolio model", () => {
       infrastructureRequirementCount: 1,
       tasks: "unavailable-until-schema-confirmed",
     });
+  });
+
+  it("accepts only a trimmed project name for the minimal create contract", () => {
+    expect(ProjectCreateSchema.parse({ name: "  New project  " })).toEqual({
+      name: "New project",
+    });
+    expect(ProjectCreateSchema.safeParse({ name: " " }).success).toBe(false);
+    expect(
+      ProjectCreateSchema.safeParse({ name: "Project", code: "PRJ" }).success,
+    ).toBe(false);
   });
 
   describe("project attachment policy", () => {

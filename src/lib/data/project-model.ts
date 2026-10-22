@@ -29,6 +29,13 @@ export const ProjectSchema = z
 
 export const ProjectListSchema = z.array(ProjectSchema);
 
+export const ProjectCreateSchema = z
+  .object({
+    name: z.string().trim().min(1).max(160),
+  })
+  .strict();
+
+export type ProjectCreateInput = z.infer<typeof ProjectCreateSchema>;
 export type ProjectRecord = z.infer<typeof ProjectSchema>;
 export type InfrastructureRequirementRecord = z.infer<
   typeof InfrastructureRequirementSchema

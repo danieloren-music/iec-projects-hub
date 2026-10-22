@@ -13,6 +13,7 @@ import { api } from '@/api';
 import { useApiResource } from '@/api/use-api-resource';
 import { ApiErrorState, ApiLoading } from '@/components/api-state';
 import { EmptyState, useAppUi } from '@/components/app-shell';
+import { CreateProjectDialog } from '@/components/create-project-dialog';
 
 export default function Home() {
   const { isRtl } = useAppUi();
@@ -80,6 +81,12 @@ export default function Home() {
           <Link href="/tasks" className="button--quiet">
             {isRtl ? 'פתיחת משימות' : 'View tasks'}
           </Link>
+          <CreateProjectDialog
+            onCreated={() => {
+              projects.retry();
+              summary.retry();
+            }}
+          />
         </div>
       </section>
 

@@ -4,6 +4,7 @@ import {
   ProjectSchema,
   type InfrastructureRequirementRecord,
   type PortfolioSummary,
+  type ProjectCreateInput,
   type ProjectRecord,
 } from "@/lib/data/project-model";
 import type { ApiClient } from "@/api/types";
@@ -102,6 +103,17 @@ async function getSummary(): Promise<PortfolioSummary> {
 async function getProjects(): Promise<ProjectRecord[]> {
   const body = await request("/api/projects");
   return parsePayload(ProjectListSchema, body, "projects");
+}
+
+async function createProject(
+  input: ProjectCreateInput,
+): Promise<ProjectRecord> {
+  const body = await request("/api/projects", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return parsePayload(ProjectSchema, body, "project");
 }
 
 async function getProject(projectId: string): Promise<ProjectRecord | null> {
@@ -227,6 +239,7 @@ async function getTasks(): Promise<never> {
 export const liveClient: ApiClient = {
   getSummary,
   getProjects,
+  createProject,
   getProject,
   getProjectAttachments,
   uploadProjectAttachment,

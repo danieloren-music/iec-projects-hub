@@ -1,6 +1,7 @@
 import type {
   InfrastructureRequirementRecord,
   PortfolioSummary,
+  ProjectCreateInput,
   ProjectRecord,
 } from "@/lib/data/project-model";
 import type { ProjectAttachment } from "@/lib/data/project-attachment-policy";
@@ -8,6 +9,7 @@ import type { ProjectAttachment } from "@/lib/data/project-attachment-policy";
 export interface ApiClient {
   getSummary(): Promise<PortfolioSummary>;
   getProjects(): Promise<ProjectRecord[]>;
+  createProject(input: ProjectCreateInput): Promise<ProjectRecord>;
   getProject(projectId: string): Promise<ProjectRecord | null>;
   getProjectAttachments(projectId: string): Promise<ProjectAttachment[]>;
   uploadProjectAttachment(

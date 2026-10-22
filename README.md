@@ -28,8 +28,11 @@ Copy `.env.example` to `.env.local` and ask the service owners for values using
 their approved secret/configuration channels. Do not commit `.env.local`.
 
 - **Authentication**: Microsoft Entra ID OpenID Connect through Auth.js.
-  Configure `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, and the Entra client ID,
-  client secret, and issuer. The callback URI is
+  Configure `AUTH_SESSION_SECRET`, `AUTH_TRUST_HOST=true`, `ENTRA_CLIENT_ID`,
+  `ENTRA_CLIENT_SECRET`, and `ENTRA_ISSUER`. `AUTH_SESSION_SECRET` protects
+  Auth.js sessions; `ENTRA_CLIENT_SECRET` authenticates this application to
+  Microsoft Entra ID. They are separate credentials and must not be reused.
+  The callback URI is
   `http://localhost:3000/api/auth/callback/microsoft-entra-id`. No SAML or
   local-password flow is implemented. The site redirects signed-out users to
   `/sign-in`; all application pages and API routes require an authenticated
@@ -65,8 +68,21 @@ conventions. Task fields, approved status vocabularies, entity relationships,
 RBAC roles and permission rules, audit requirements, and assignment/date rules
 remain unconfirmed. Project and infrastructure reads are isolated behind the
 repository layer. The frontend uses same-origin API reads for projects and
-infrastructure. Task reads and PMO create/update routes remain disabled until
-those contracts are confirmed. The attachment metadata migration does not
+infrastructure. Creating a project currently writes only its `name` and
+requires the database to generate its `id`; other PMO create/update routes and
+task reads remain disabled until their contracts are confirmed. No project
+migration is assumed. Verify the existing table contract in the Supabase SQL
+Editor before using project creation:
+
+```sql
+select column_name, data_type, is_nullable, column_default
+from information_schema.columns
+where table_schema = 'public' and table_name = 'projects'
+order by ordinal_position;
+```
+
+The `projects` table must have a writable `name` column and an `id` column with
+a database-generated default. The attachment metadata migration does not
 assume a project-table primary-key type or change the PMO schema.
 
 Until project membership and permission rules are confirmed, any user signed in
