@@ -9,13 +9,14 @@ import {
 import type { ApiClient } from "@/api/types";
 import {
   MAX_PROJECT_ATTACHMENT_SIZE,
+  PROJECT_ATTACHMENTS_BUCKET,
   ProjectAttachmentListSchema,
   ProjectAttachmentSchema,
+  ProjectAttachmentUploadUrlSchema,
   ProjectAttachmentUploadSchema,
-  normalizeAttachmentUpload,
   type ProjectAttachment,
 } from "@/lib/data/project-attachment-policy";
-import { upload as uploadToBlob } from "@vercel/blob/client";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 export class ApiRequestError extends Error {
@@ -136,36 +137,71 @@ async function uploadProjectAttachment(
     );
   }
 
-  const upload = normalizeAttachmentUpload(
-    ProjectAttachmentUploadSchema.parse({
-      filename: file.name,
-      contentType: file.type,
-      sizeBytes: file.size,
-    }),
-  );
-  const encodedProjectId = encodeURIComponent(projectId);
-  const path = `${projectId}/${crypto.randomUUID()}/${upload.safeFilename}`;
-  const blob = await uploadToBlob(path, file, {
-    access: "private",
-    contentType: upload.contentType,
-    handleUploadUrl: `/api/projects/${encodedProjectId}/attachments/upload`,
-    clientPayload: JSON.stringify({
-      filename: file.name,
-      contentType: file.type,
-      sizeBytes: file.size,
-    }),
+  ProjectAttachmentUploadSchema.parse({
+    filename: file.name,
+    contentType: file.type,
+    sizeBytes: file.size,
   });
+  const encodedProjectId = encodeURIComponent(projectId);
+  const uploadResponse = await request(
+    `/api/projects/${encodedProjectId}/attachments`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      }),
+    },
+  );
+  const { upload: signedUpload } =
+    ProjectAttachmentUploadUrlSchema.parse(uploadResponse);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !anonKey) {
+    throw new ApiRequestError(
+      "Project file storage is not configured.",
+      503,
+      "SERVICE_UNAVAILABLE",
+    );
+  }
+
+  const storageClient = createClient(supabaseUrl, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  });
+  const { error } = await storageClient.storage
+    .from(PROJECT_ATTACHMENTS_BUCKET)
+    .uploadToSignedUrl(signedUpload.path, signedUpload.token, file, {
+      contentType: signedUpload.contentType,
+    });
+
+  if (error) {
+    throw new ApiRequestError(
+      "The file could not be uploaded to the project bucket.",
+      502,
+      "UPLOAD_FAILED",
+    );
+  }
 
   const completionResponse = await request(
     `/api/projects/${encodedProjectId}/attachments`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: blob.pathname }),
+      body: JSON.stringify({ path: signedUpload.path }),
     },
   );
 
-  return parsePayload(ProjectAttachmentSchema, completionResponse, "attachment");
+  return parsePayload(
+    ProjectAttachmentSchema,
+    completionResponse,
+    "attachment",
+  );
 }
 
 async function getInfrastructureRequirements(): Promise<

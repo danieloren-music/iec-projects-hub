@@ -28,25 +28,28 @@ Copy `.env.example` to `.env.local` and ask the service owners for values using
 their approved secret/configuration channels. Do not commit `.env.local`.
 
 - **Authentication**: Microsoft Entra ID OpenID Connect through Auth.js.
-  Configure `AUTH_SECRET` and the Entra client ID, client secret, and
-  issuer. The callback URI is
+  Configure `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, and the Entra client ID,
+  client secret, and issuer. The callback URI is
   `http://localhost:3000/api/auth/callback/microsoft-entra-id`. No SAML or
-  local-password flow is implemented.
+  local-password flow is implemented. The site redirects signed-out users to
+  `/sign-in`; all application pages and API routes require an authenticated
+  session.
 - **Database**: Supabase PostgreSQL uses the server-side adapter and the
   existing project conventions. Set `NEXT_PUBLIC_SUPABASE_URL` and
   `NEXT_PUBLIC_SUPABASE_ANON_KEY` only after the owner reviews the database
   access policies and confirms that row-level security protects the data.
-- **Project files**: Vercel Blob provides private file storage and direct
-  browser uploads. Create a private Blob store in Vercel and connect it to the
-  project; set `BLOB_READ_WRITE_TOKEN` for local development (Vercel can inject
-  it into deployments). The free Hobby plan has limited monthly quotas and is
-  intended for personal projects; confirm the plan is appropriate for your
-  organization and check current quotas before using it for production. Run
+- **Project files**: Supabase Storage stores project files in the existing
+  `project-documents` bucket, under a per-project path
+  (`<project-id>/<upload-id>/<filename>`). The bucket is public as currently
+  configured, so anyone with a file URL can access it even without signing in.
+  The application still authorizes uploads and downloads through its Entra-
+  protected API. Keep confidential files out of this bucket until it is made
+  private and its access policies are configured. Run
   [`supabase/migrations/20261022153000_project_attachments.sql`](./supabase/migrations/20261022153000_project_attachments.sql)
-  in the Supabase SQL Editor to create the metadata table. Set
-  `SUPABASE_SERVICE_ROLE_KEY` as a server-only database secret in local
-  development and Vercel. Supported files are limited to 6 MiB and the
-  extension/MIME allowlist in the project workspace.
+  in the Supabase SQL Editor to create the metadata table, and set
+  `SUPABASE_SERVICE_ROLE_KEY` as a server-only secret in local development and
+  Vercel. Supported files are limited to 6 MiB and the extension/MIME allowlist
+  in the project workspace.
 - **Optional Lin**: Gemini calls stay disabled unless `GEMINI_API_KEY` is set
   and external AI use is explicitly enabled with
   `LIN_EXTERNAL_AI_ENABLED=true`. Lin does not receive internal project

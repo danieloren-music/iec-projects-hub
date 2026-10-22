@@ -1,5 +1,5 @@
--- File contents live in a private Vercel Blob store. This table stores metadata
--- only; the service-role key is server-only and must never reach the browser.
+-- This table stores project-file metadata. File contents are in the
+-- project-documents Storage bucket; the service-role key is server-only.
 begin;
 
 create table if not exists public.project_attachments (

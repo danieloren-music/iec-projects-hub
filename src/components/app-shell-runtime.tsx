@@ -16,6 +16,10 @@ export async function AppShellRuntime({
     Boolean(process.env.AUTH_SECRET) &&
     process.env.AUTH_TRUST_HOST === "true";
   const session = authConfigured ? await auth() : null;
+  if (!session?.user) {
+    return children;
+  }
+
   const currentUser = session?.user
     ? {
         name: session.user.name ?? null,

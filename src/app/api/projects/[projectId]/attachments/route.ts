@@ -3,8 +3,12 @@ import { apiError } from "@/lib/api/errors";
 import { withExistingProject } from "@/lib/api/project-attachment-scope";
 import {
   completeProjectAttachmentUpload,
+  createProjectAttachmentUpload,
   listProjectAttachments,
 } from "@/lib/data/project-attachments";
+import {
+  ProjectAttachmentUploadSchema,
+} from "@/lib/data/project-attachment-policy";
 
 const CompleteUploadSchema = z.object({
   path: z.string().min(1).max(512),
@@ -35,12 +39,25 @@ export async function POST(
       throw error;
     }
 
-    const { path } = CompleteUploadSchema.parse(body);
-    const attachment = await completeProjectAttachmentUpload(
+    if (
+      typeof body === "object" &&
+      body !== null &&
+      "path" in body
+    ) {
+      const { path } = CompleteUploadSchema.parse(body);
+      const attachment = await completeProjectAttachmentUpload(
+        projectId,
+        path,
+        user,
+      );
+      return Response.json({ attachment }, { status: 201 });
+    }
+
+    const upload = ProjectAttachmentUploadSchema.parse(body);
+    const signedUpload = await createProjectAttachmentUpload(
       projectId,
-      path,
-      user,
+      upload,
     );
-    return Response.json({ attachment }, { status: 201 });
+    return Response.json({ upload: signedUpload }, { status: 201 });
   });
 }

@@ -51,19 +51,14 @@ const spec = {
         security: [{ sessionCookie: [] }],
       },
       post: {
-        summary: "Register an uploaded private project file",
-        security: [{ sessionCookie: [] }],
-      },
-    },
-    "/api/projects/{projectId}/attachments/upload": {
-      post: {
-        summary: "Authorize a private Vercel Blob client upload",
+        summary:
+          "Create a signed upload URL or register an uploaded project file",
         security: [{ sessionCookie: [] }],
       },
     },
     "/api/projects/{projectId}/attachments/{attachmentId}/download": {
       get: {
-        summary: "Stream a private project file to an authorized user",
+        summary: "Download a project file through the authenticated application API",
         security: [{ sessionCookie: [] }],
       },
     },

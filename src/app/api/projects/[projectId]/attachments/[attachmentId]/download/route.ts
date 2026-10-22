@@ -27,7 +27,7 @@ export async function GET(
         return apiError(404, "NOT_FOUND", "Project file not found.");
       }
 
-      return new Response(file.stream, {
+      return new Response(file.body.stream(), {
         headers: {
           "Content-Type": file.contentType,
           "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(file.filename)}`,
