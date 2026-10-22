@@ -86,6 +86,7 @@ Double-check that all ❓ tools are installed and available in your development 
 **Component Library**: Fluent UI v9
 **Style Direction**: A calm, data-dense PMO console with precise typography, compact project tables, restrained navy/teal accents, and clear status contrast. Provide a light default and a matching dark theme; use semantic status colors consistently without letting them overpower delivery data.
 **Typography**: Geist, system-ui
+**Assistant Experience**: Lin remains opt-in and can be opened in a contextual side panel from the portfolio workspace; show a clear unavailable state until the optional AI service is securely configured.
 
 ### Color Palette
 
@@ -107,6 +108,7 @@ Double-check that all ❓ tools are installed and available in your development 
 | Project Workspace | `/projects/[projectId]` | Review one project's summary, related tasks, and infrastructure requests. | `header, nav, hero, tabs, two-column(table+card-list), footer` |
 | Task Board | `/tasks` | Review and filter task work across the portfolio. | `header, nav, section-title, tabs, table, footer` |
 | Infrastructure Requests | `/infrastructure` | Track infrastructure requirements and show the empty unassigned view. | `header, nav, section-title, tabs, table, empty, footer` |
+| Sign In | `/sign-in` | Provide a dedicated entry point before users reach the portfolio. | `header, main, form, actions, footer` |
 
 ### Sample Content
 
@@ -148,6 +150,9 @@ Infrastructure Requests — requirement:
 | Network connectivity review | Datricks rollout           | Open        |
 | Test environment capacity   | PMO workspace pilot        | In progress |
 | Data access review          | Network visibility upgrade | Open        |
+
+Sign In — no credentials or sample secrets:
+Local account: blank username and password · Entra: optional Microsoft sign-in button
 ```
 
 Before schema or data implementation, confirm the PMO entity fields, relationships, permitted status/health values, role names and permission matrix, assignment/date rules, audit/history needs, and whether any demonstration records are approved. The preview depicts loading, empty, and error states as well as populated examples; the empty filter is illustrative, not a claim about live data.
@@ -175,6 +180,7 @@ iec-projects-hub/
 │   │   │   ├── projects/[projectId]/attachments/route.ts # Planned
 │   │   │   └── projects/[projectId]/attachments/[attachmentId]/download/route.ts # Planned
 │   │   │   └── lin/route.ts              # Existing; review before extending
+│   ├── sign-in/page.tsx                  # Planned dedicated sign-in landing
 │   │   ├── infrastructure/page.tsx       # Planned
 │   │   ├── projects/page.tsx             # Planned
 │   │   ├── projects/[projectId]/page.tsx  # Planned
@@ -185,7 +191,8 @@ iec-projects-hub/
 │   ├── components/
 │   │   ├── portfolio/                    # Planned reusable dashboard/project views
 │   │   ├── tasks/                        # Planned task views
-│   │   └── infrastructure/               # Planned requirement views
+│   │   ├── infrastructure/               # Planned requirement views
+│   │   └── assistant/                    # Planned Lin side-panel experience
 │   ├── lib/
 │   │   ├── supabase.ts                   # Existing; refactor behind a server-side data-access boundary
 │   │   ├── data/                         # Planned typed repository/service contracts
