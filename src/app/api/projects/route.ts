@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       return apiError(
         400,
         "BAD_REQUEST",
-        "A project name and both project owners are required.",
+        "A valid project name, project owners, and optional details are required.",
         input.error.issues,
       );
     }

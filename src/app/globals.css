@@ -33,7 +33,8 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -421,15 +422,16 @@ input:focus-visible {
 }
 
 .project-create-dialog {
-  width: min(100%, 440px);
-  max-height: min(90vh, 620px);
+  width: min(calc(100% - 32px), 760px);
+  max-height: min(92vh, 900px);
   margin: auto;
-  padding: 24px;
+  padding: clamp(20px, 4vw, 34px);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 18px;
   color: var(--text);
   background: var(--surface-raised);
   box-shadow: 0 24px 64px rgb(0 0 0 / 25%);
+  overflow-y: auto;
 }
 
 .project-create-dialog::backdrop {
@@ -445,28 +447,102 @@ input:focus-visible {
 }
 
 .project-create-dialog__heading h2 {
-  margin: 0;
-  font-size: 20px;
+  margin: 2px 0 0;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.project-create-dialog__description {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .project-create-form {
   display: grid;
-  gap: 10px;
-  margin-top: 22px;
+  gap: 22px;
+  margin-top: 26px;
 }
 
-.project-create-form label {
+.project-create-form__section {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.project-create-form__section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.project-create-form__section-heading > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.project-create-form__section-heading h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.project-create-form__section-heading p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.project-create-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.project-create-form__field {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.project-create-form__field--wide {
+  grid-column: 1 / -1;
+}
+
+.project-create-form__field label {
   font-size: 12px;
   font-weight: 650;
 }
 
-.project-create-form input {
-  min-height: 42px;
-  padding: 0 12px;
+.project-create-form__field input,
+.project-create-form__field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
   background: var(--surface-soft);
+}
+
+.project-create-form__field textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.project-create-form__counter {
+  justify-self: end;
+  color: var(--muted);
+  font-size: 10px;
 }
 
 .project-create-form__hint,
@@ -486,32 +562,149 @@ input:focus-visible {
 
 .project-create-form__actions {
   justify-content: flex-start;
-  margin-top: 10px;
+  margin-top: 0;
+}
+
+@media (max-width: 560px) {
+  .project-create-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-create-form__field--wide {
+    grid-column: auto;
+  }
 }
 
 .sign-in-page {
-  display: grid;
+  display: flex;
   min-height: 100vh;
-  place-items: center;
-  padding: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 5vw, 64px);
   background:
-    radial-gradient(ellipse at 85% 15%, rgb(29 78 216 / 10%), transparent 40%),
+    radial-gradient(ellipse at 12% 5%, rgb(29 78 216 / 12%), transparent 34%),
+    radial-gradient(ellipse at 88% 95%, rgb(15 118 110 / 9%), transparent 32%),
     var(--surface);
 }
 
-.sign-in-card {
-  width: min(100%, 460px);
-  padding: clamp(24px, 5vw, 40px);
+.sign-in-layout {
+  display: grid;
+  width: min(100%, 1120px);
+  min-height: 650px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 24px;
   background: var(--surface-raised);
-  box-shadow: 0 18px 48px rgb(23 32 51 / 10%);
+  box-shadow: 0 28px 90px rgb(23 32 51 / 13%);
+  overflow: hidden;
 }
 
-.sign-in-card__toolbar {
+.sign-in-intro {
   display: flex;
-  justify-content: flex-end;
+  min-height: 650px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 34px clamp(30px, 5vw, 68px) 30px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 15% 85%, rgb(15 118 110 / 42%), transparent 42%),
+    linear-gradient(145deg, #122b55 0%, #1d4ed8 66%, #2859bd 100%);
+}
+
+.sign-in-intro .sign-in-language {
+  align-self: flex-start;
+  border-color: rgb(255 255 255 / 28%);
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+}
+
+.sign-in-intro .sign-in-language:hover {
+  background: rgb(255 255 255 / 18%);
+}
+
+.sign-in-intro__content {
+  max-width: 480px;
+  margin-block: 44px;
+}
+
+.sign-in-brand-mark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
   margin-bottom: 30px;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 17px;
+  background: rgb(255 255 255 / 12%);
+}
+
+.sign-in-intro .sign-in-card__eyebrow {
+  color: #b9d4ff;
+}
+
+.sign-in-intro h1 {
+  max-width: 500px;
+  margin: 16px 0;
+  font-size: clamp(34px, 4.3vw, 54px);
+  letter-spacing: -0.045em;
+  line-height: 1.13;
+}
+
+.sign-in-intro__description {
+  max-width: 450px;
+  margin: 0;
+  color: rgb(255 255 255 / 78%);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.sign-in-benefits {
+  display: grid;
+  gap: 17px;
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sign-in-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  color: rgb(255 255 255 / 91%);
+  font-size: 14px;
+}
+
+.sign-in-benefits svg {
+  flex: 0 0 auto;
+  color: #b9d4ff;
+}
+
+.sign-in-intro__footer {
+  margin: 0;
+  color: rgb(255 255 255 / 65%);
+  font-size: 12px;
+}
+
+.sign-in-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(30px, 5vw, 68px);
+}
+
+.sign-in-panel__heading {
+  margin-bottom: 12px;
+}
+
+.sign-in-panel__icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  margin-bottom: 22px;
+  border-radius: 12px;
+  color: var(--primary);
+  background: var(--primary-soft);
 }
 
 .sign-in-language {
@@ -536,41 +729,167 @@ input:focus-visible {
   text-transform: uppercase;
 }
 
-.sign-in-card h1 {
-  margin: 12px 0 8px;
-  font-size: clamp(28px, 5vw, 36px);
+.sign-in-panel h2 {
+  margin: 10px 0 8px;
+  font-size: clamp(30px, 3vw, 38px);
   letter-spacing: -0.04em;
 }
 
 .sign-in-card__description {
   margin: 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
 }
 
 .sign-in-card__form {
-  margin-top: 28px;
+  display: grid;
+  gap: 11px;
+  margin-top: 25px;
+}
+
+.sign-in-card__form label {
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.sign-in-card__form input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.sign-in-card__form input:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.sign-in-password-field {
+  position: relative;
+}
+
+.sign-in-password-field input {
+  padding-inline-end: 52px;
+}
+
+.sign-in-password-toggle {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: grid;
+  width: 48px;
+  place-items: center;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.sign-in-password-toggle:hover {
+  color: var(--text);
 }
 
 .sign-in-card__submit {
+  display: flex;
   width: 100%;
-  min-height: 44px;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 0 18px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 9px;
   color: #fff;
   background: #1d4ed8;
+  box-shadow: 0 7px 18px rgb(29 78 216 / 20%);
   font-weight: 650;
   cursor: pointer;
+  transition: background 140ms ease, transform 140ms ease;
 }
 
 .sign-in-card__submit:hover {
   background: #1e40af;
+  transform: translateY(-1px);
+}
+
+.sign-in-card__submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
+.sign-in-card__error {
+  margin: 5px 0 0;
+  color: #b42318;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.sign-in-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 25px 0 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sign-in-divider::before,
+.sign-in-divider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+  content: "";
+}
+
+.sign-in-card__entra {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  background: var(--surface-raised);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sign-in-card__entra:hover {
+  background: var(--surface-soft);
+}
+
+.sign-in-card__entra:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.entra-mark {
+  color: #2563eb;
+}
+
+.sign-in-panel__security {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 28px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
 }
 
 .sign-in-card__notice {
-  margin-top: 26px;
-  padding: 14px;
+  margin-top: 24px;
+  padding: 16px;
   border: 1px solid #f5ce79;
   border-radius: 9px;
   color: #614100;
@@ -586,6 +905,53 @@ input:focus-visible {
 .sign-in-card__notice-title {
   margin-bottom: 4px !important;
   font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .sign-in-layout {
+    width: min(100%, 620px);
+    min-height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .sign-in-intro {
+    min-height: 0;
+    padding: 25px clamp(25px, 7vw, 48px) 34px;
+  }
+
+  .sign-in-intro__content {
+    margin-block: 34px 10px;
+  }
+
+  .sign-in-intro h1 {
+    font-size: clamp(32px, 7vw, 46px);
+  }
+
+  .sign-in-benefits {
+    margin-top: 24px;
+  }
+
+  .sign-in-intro__footer {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .sign-in-page {
+    padding: 12px;
+  }
+
+  .sign-in-layout {
+    border-radius: 17px;
+  }
+
+  .sign-in-intro {
+    padding: 20px 22px 25px;
+  }
+
+  .sign-in-panel {
+    padding: 28px 22px;
+  }
 }
 
 .kpi-grid {

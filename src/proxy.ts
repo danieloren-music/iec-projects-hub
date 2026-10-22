@@ -1,11 +1,9 @@
-import { auth, isEntraIdConfigured } from "@/auth";
+import { auth, isAuthenticationConfigured } from "@/auth";
 import type { NextAuthRequest } from "next-auth";
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 
-const authReady =
-  isEntraIdConfigured &&
-  Boolean(process.env.AUTH_SECRET);
+const authReady = isAuthenticationConfigured;
 
 const authenticatedProxy = auth(
   (request: NextAuthRequest, event: NextFetchEvent) => {
@@ -48,7 +46,7 @@ export function proxy(request: NextRequest, event: NextFetchEvent) {
         {
           error: {
             code: "SERVICE_UNAVAILABLE",
-            message: "OIDC sign-in is not configured.",
+            message: "Authentication is not configured.",
             details: null,
           },
         },

@@ -1,18 +1,24 @@
-import { isEntraIdConfigured, signIn } from "@/auth";
+import {
+  isAuthenticationConfigured,
+  isEntraIdConfigured,
+  isLocalAdminEnabled,
+} from "@/auth";
 import { connection } from "next/server";
 import { SignInExperience } from "@/components/sign-in-experience";
-
-async function signInWithEntra() {
-  "use server";
-
-  await signIn("microsoft-entra-id", { redirectTo: "/" });
-}
+import {
+  signInWithEntra,
+  signInWithLocalAdmin,
+} from "@/app/sign-in/actions";
 
 export default async function SignInPage() {
   await connection();
-  const ready =
-    isEntraIdConfigured &&
-    Boolean(process.env.AUTH_SECRET);
 
-  return <SignInExperience ready={ready} signInAction={signInWithEntra} />;
+  return (
+    <SignInExperience
+      localAdminReady={isAuthenticationConfigured && isLocalAdminEnabled}
+      entraReady={isAuthenticationConfigured && isEntraIdConfigured}
+      signInAction={signInWithLocalAdmin}
+      entraSignInAction={signInWithEntra}
+    />
+  );
 }

@@ -4,7 +4,7 @@ const spec = {
     title: "IEC Projects Hub API",
     version: "0.1.0",
     description:
-      "Read-only PMO API scaffold. Write contracts and task schemas remain disabled pending PMO confirmation.",
+      "PMO project reads and project creation are available. Other write contracts and task schemas remain disabled pending PMO confirmation.",
   },
   servers: [{ url: "/" }],
   components: {
@@ -13,7 +13,8 @@ const spec = {
         type: "apiKey",
         in: "cookie",
         name: "__Secure-authjs.session-token",
-        description: "Auth.js OIDC session established by Microsoft Entra ID.",
+        description:
+          "Auth.js session established by the configured local administrator or optional Microsoft Entra provider.",
       },
     },
   },
@@ -31,7 +32,8 @@ const spec = {
         security: [{ sessionCookie: [] }],
       },
       post: {
-        summary: "Disabled until PMO schema is confirmed",
+        summary:
+          "Create a project with its name, owners, and optional code, overview, and target go-live date",
         security: [{ sessionCookie: [] }],
       },
     },

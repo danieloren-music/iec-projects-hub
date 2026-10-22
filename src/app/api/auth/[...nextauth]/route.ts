@@ -1,20 +1,12 @@
-import { handlers } from "@/auth";
+import { handlers, isAuthenticationConfigured } from "@/auth";
 import { apiUnavailable } from "@/lib/api/errors";
 
-const authReady =
-  Boolean(process.env.AUTH_SECRET) &&
-  Boolean(
-    process.env.ENTRA_CLIENT_ID &&
-      process.env.ENTRA_CLIENT_SECRET &&
-      process.env.ENTRA_TENANT_ID,
-  );
-
 function unconfigured() {
-  return apiUnavailable("OIDC sign-in is not configured.");
+  return apiUnavailable("Authentication is not configured.");
 }
 
 export const GET: typeof handlers.GET = async (...args) =>
-  authReady ? handlers.GET(...args) : unconfigured();
+  isAuthenticationConfigured ? handlers.GET(...args) : unconfigured();
 
 export const POST: typeof handlers.POST = async (...args) =>
-  authReady ? handlers.POST(...args) : unconfigured();
+  isAuthenticationConfigured ? handlers.POST(...args) : unconfigured();

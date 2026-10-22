@@ -1,4 +1,4 @@
-import { auth, isEntraIdConfigured } from "@/auth";
+import { auth, isAuthenticationConfigured } from "@/auth";
 import { signOutAction } from "@/app/sign-out/actions";
 import { AppShell } from "@/components/app-shell";
 import { connection } from "next/server";
@@ -11,9 +11,7 @@ export async function AppShellRuntime({
 }) {
   await connection();
 
-  const authConfigured =
-    isEntraIdConfigured &&
-    Boolean(process.env.AUTH_SECRET);
+  const authConfigured = isAuthenticationConfigured;
   const session = authConfigured ? await auth() : null;
   if (!session?.user) {
     return children;

@@ -1,4 +1,4 @@
-import { auth, isEntraIdConfigured } from "@/auth";
+import { auth, isAuthenticationConfigured } from "@/auth";
 import {
   apiError,
   withApiLogging,
@@ -33,13 +33,13 @@ function hasSessionUser(value: unknown): value is {
 }
 
 export async function requireAuthenticatedUser(): Promise<AuthenticationResult> {
-  if (!isEntraIdConfigured || !process.env.AUTH_SECRET) {
+  if (!isAuthenticationConfigured) {
     return {
       session: null,
       response: apiError(
         503,
         "SERVICE_UNAVAILABLE",
-        "OIDC sign-in is not configured.",
+        "Authentication is not configured.",
       ),
     } as const;
   }

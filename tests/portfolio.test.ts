@@ -70,6 +70,35 @@ describe("portfolio model", () => {
     ).toBe(false);
   });
 
+  it("accepts optional project brief fields and rejects malformed target dates", () => {
+    expect(
+      ProjectCreateSchema.parse({
+        name: "  Network upgrade  ",
+        code: "  IEC-204 ",
+        overview: "  Upgrade core network capacity. ",
+        business_pm: "Implementation owner",
+        infra_lead: "Infrastructure owner",
+        target_go_live: "2027-03-15",
+      }),
+    ).toEqual({
+      name: "Network upgrade",
+      code: "IEC-204",
+      overview: "Upgrade core network capacity.",
+      business_pm: "Implementation owner",
+      infra_lead: "Infrastructure owner",
+      target_go_live: "2027-03-15",
+    });
+
+    expect(
+      ProjectCreateSchema.safeParse({
+        name: "Network upgrade",
+        business_pm: "Implementation owner",
+        infra_lead: "Infrastructure owner",
+        target_go_live: "2027-02-30",
+      }).success,
+    ).toBe(false);
+  });
+
   describe("project attachment policy", () => {
     it("normalizes supported office files and sanitizes path separators", () => {
       const input = ProjectAttachmentUploadSchema.parse({

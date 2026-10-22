@@ -1,13 +1,11 @@
-import { isEntraIdConfigured } from "@/auth";
+import { isAuthenticationConfigured } from "@/auth";
 import { withApiLogging } from "@/lib/api/errors";
 
 export async function GET(request: Request) {
   return withApiLogging(request, async () => {
     const services = {
       authentication:
-        isEntraIdConfigured && Boolean(process.env.AUTH_SECRET)
-          ? "configured"
-          : "unconfigured",
+        isAuthenticationConfigured ? "configured" : "unconfigured",
       database:
         process.env.NEXT_PUBLIC_SUPABASE_URL &&
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
