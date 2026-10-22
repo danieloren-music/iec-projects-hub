@@ -1,8 +1,8 @@
 import "server-only";
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { DataSourceUnavailableError } from "@/lib/data/portfolio-repository";
+import { getSupabaseAdminClient } from "@/lib/data/supabase";
 import {
   isProjectAttachmentPath,
   normalizeAttachmentUpload,
@@ -16,25 +16,8 @@ import {
 
 const AttachmentPathSchema = z.string().min(1).max(512);
 
-function getStorageAdminClient(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !serviceRoleKey) {
-    return null;
-  }
-
-  return createClient(url, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  });
-}
-
-function requireStorageAdminClient(): SupabaseClient {
-  const client = getStorageAdminClient();
+function requireStorageAdminClient() {
+  const client = getSupabaseAdminClient();
   if (!client) {
     throw new DataSourceUnavailableError(
       "Project file storage is not configured.",

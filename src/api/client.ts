@@ -2,10 +2,15 @@ import {
   InfrastructureRequirementSchema,
   ProjectListSchema,
   ProjectSchema,
+  TaskListSchema,
+  TaskSchema,
   type InfrastructureRequirementRecord,
   type PortfolioSummary,
   type ProjectCreateInput,
   type ProjectRecord,
+  type TaskCreateInput,
+  type TaskRecord,
+  type TaskUpdateInput,
 } from "@/lib/data/project-model";
 import type { ApiClient } from "@/api/types";
 import {
@@ -34,7 +39,7 @@ export class ApiRequestError extends Error {
 const SummarySchema = z.object({
   projectCount: z.number().int().nonnegative(),
   infrastructureRequirementCount: z.number().int().nonnegative(),
-  tasks: z.literal("unavailable-until-schema-confirmed"),
+  taskCount: z.number().int().nonnegative(),
 });
 
 async function request(path: string, init?: RequestInit): Promise<unknown> {
@@ -227,13 +232,31 @@ async function getInfrastructureRequirements(): Promise<
   );
 }
 
-async function getTasks(): Promise<never> {
-  await request("/api/tasks");
-  throw new ApiRequestError(
-    "Task data is unavailable until the PMO task schema is confirmed.",
-    503,
-    "SCHEMA_UNCONFIRMED",
-  );
+async function getTasks(projectId?: string): Promise<TaskRecord[]> {
+  const query = projectId ? `?projectId=${encodeURIComponent(projectId)}` : "";
+  const body = await request(`/api/tasks${query}`);
+  return parsePayload(TaskListSchema, body, "tasks");
+}
+
+async function createTask(input: TaskCreateInput): Promise<TaskRecord> {
+  const body = await request("/api/tasks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return parsePayload(TaskSchema, body, "task");
+}
+
+async function updateTask(
+  taskId: string,
+  input: TaskUpdateInput,
+): Promise<TaskRecord> {
+  const body = await request(`/api/tasks/${encodeURIComponent(taskId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return parsePayload(TaskSchema, body, "task");
 }
 
 export const liveClient: ApiClient = {
@@ -245,4 +268,6 @@ export const liveClient: ApiClient = {
   uploadProjectAttachment,
   getInfrastructureRequirements,
   getTasks,
+  createTask,
+  updateTask,
 };

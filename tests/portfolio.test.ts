@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   ProjectCreateSchema,
   ProjectSchema,
+  TaskCreateSchema,
+  TaskSchema,
   summarizePortfolio,
 } from "../src/lib/data/project-model";
 import {
@@ -16,7 +18,7 @@ describe("portfolio model", () => {
     expect(summarizePortfolio([])).toEqual({
       projectCount: 0,
       infrastructureRequirementCount: 0,
-      tasks: "unavailable-until-schema-confirmed",
+      taskCount: 0,
     });
   });
 
@@ -38,8 +40,41 @@ describe("portfolio model", () => {
     expect(summarizePortfolio([project])).toEqual({
       projectCount: 1,
       infrastructureRequirementCount: 1,
-      tasks: "unavailable-until-schema-confirmed",
+      taskCount: 0,
     });
+  });
+
+  it("validates task ownership and supported workflow states", () => {
+    const task = TaskSchema.parse({
+      id: "d4799778-c815-4e3e-8889-72c4bdd69a26",
+      project_id: "project-1",
+      title: "Review plan",
+      description: null,
+      status: "in_progress",
+      assigned_to: "owner@example.com",
+      created_by: "user-1",
+      created_at: "2026-10-22T00:00:00.000Z",
+      updated_at: "2026-10-22T00:00:00.000Z",
+    });
+
+    expect(
+      TaskCreateSchema.parse({
+        project_id: "project-1",
+        title: "  Review plan  ",
+        assigned_to: "owner@example.com",
+      }),
+    ).toMatchObject({
+      project_id: "project-1",
+      title: "Review plan",
+      assigned_to: "owner@example.com",
+    });
+    expect(
+      TaskSchema.safeParse({ ...task, status: "not-a-status" }).success,
+    ).toBe(false);
+    expect(
+      TaskSchema.safeParse({ ...task, assigned_to: "not-an-email" }).success,
+    ).toBe(false);
+    expect(summarizePortfolio([], [task]).taskCount).toBe(1);
   });
 
   it("requires a project name and both owners when creating a project", () => {

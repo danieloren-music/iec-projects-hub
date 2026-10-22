@@ -50,7 +50,8 @@ a {
 
 button:focus-visible,
 a:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 3px solid rgb(29 78 216 / 35%);
   outline-offset: 2px;
 }
@@ -874,7 +875,28 @@ input:focus-visible {
 }
 
 .entra-mark {
-  color: #2563eb;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+}
+
+.entra-mark span {
+  background: #f25022;
+}
+
+.entra-mark span:nth-child(2) {
+  background: #7fba00;
+}
+
+.entra-mark span:nth-child(3) {
+  background: #00a4ef;
+}
+
+.entra-mark span:nth-child(4) {
+  background: #ffb900;
 }
 
 .sign-in-panel__security {
@@ -1477,6 +1499,87 @@ input:focus-visible {
   color: var(--text);
   background: var(--surface-soft);
   font-size: 11px;
+}
+
+.task-board {
+  display: grid;
+  gap: 16px;
+}
+
+.task-create-card h2 {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.task-create-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  align-items: end;
+  gap: 12px;
+}
+
+.task-create-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.task-create-form input,
+.task-create-form select,
+.task-edit-form input,
+.task-edit-form select {
+  width: 100%;
+  min-width: 120px;
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  background: var(--surface-soft);
+  font-size: 12px;
+}
+
+.task-edit-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.task-edit-form select,
+.task-edit-form input {
+  width: auto;
+  flex: 1 1 120px;
+}
+
+.task-save-button {
+  min-height: 34px;
+}
+
+.task-description,
+.task-error {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.task-error {
+  color: #b42318;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (max-width: 760px) {

@@ -49,8 +49,11 @@ export default function Home() {
       icon: CheckSquare,
       en: 'Tasks',
       he: 'משימות',
-      value: '—',
-      hint: isRtl ? 'סכמת המשימות לא אושרה' : 'Task schema is unconfirmed',
+      value:
+        summary.state.status === 'success'
+          ? String(summary.state.data.taskCount)
+          : '—',
+      hint: isRtl ? 'מספר המשימות בתיק' : 'Tasks across the portfolio',
     },
     {
       icon: Layers3,

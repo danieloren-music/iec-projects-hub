@@ -3,12 +3,13 @@
 import { Suspense } from 'react';
 import { useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { CheckSquare, Layers3 } from 'lucide-react';
+import { Layers3 } from 'lucide-react';
 import { api } from '@/api';
 import { useApiResource } from '@/api/use-api-resource';
 import { ApiErrorState, ApiLoading } from '@/components/api-state';
 import { EmptyState, PageHeading, useAppUi } from '@/components/app-shell';
 import { ProjectAttachments } from '@/components/project-attachments';
+import { TaskBoard } from '@/components/task-board';
 
 function ProjectWorkspaceContent() {
   const { isRtl } = useAppUi();
@@ -63,19 +64,7 @@ function ProjectWorkspaceContent() {
           </section>
         ))}
       <div className="workspace-grid" style={{ marginTop: 15 }}>
-        <section className="table-card">
-          <div className="card-heading">
-            <h2>{isRtl ? 'עבודה קשורה' : 'Related work'}</h2>
-            <span className="card-heading__hint">{isRtl ? 'הסכמה לא אושרה' : 'Schema unconfirmed'}</span>
-          </div>
-          <EmptyState
-            icon={CheckSquare}
-            title="Task data is unavailable"
-            titleHe="נתוני משימות אינם זמינים"
-            description="The task contract is unconfirmed, so related task records are not queried or displayed."
-            descriptionHe="חוזה המשימות לא אושר, ולכן לא מתבצעת שאילתה או הצגה של משימות קשורות."
-          />
-        </section>
+        <TaskBoard projectId={projectId} />
         <section className="surface-card">
           <div className="card-heading">
             <h2>{isRtl ? 'תשתיות' : 'Infrastructure'}</h2>

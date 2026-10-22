@@ -29,6 +29,44 @@ export const ProjectSchema = z
 
 export const ProjectListSchema = z.array(ProjectSchema);
 
+export const TaskStatusSchema = z.enum([
+  "todo",
+  "in_progress",
+  "blocked",
+  "done",
+]);
+
+export const TaskSchema = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().nullable(),
+  status: TaskStatusSchema,
+  assigned_to: z.string().email().max(254).nullable(),
+  created_by: z.string().min(1),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export const TaskListSchema = z.array(TaskSchema);
+
+export const TaskCreateSchema = z
+  .object({
+    project_id: z.string().trim().min(1).max(128),
+    title: z.string().trim().min(1).max(200),
+    description: z.string().trim().max(2000).optional(),
+    assigned_to: z.string().trim().email().max(254).optional(),
+  })
+  .strict();
+
+export const TaskUpdateSchema = z
+  .object({
+    status: TaskStatusSchema.optional(),
+    assigned_to: z.string().trim().email().max(254).nullable().optional(),
+  })
+  .strict()
+  .refine((input) => Object.keys(input).length > 0);
+
 export const ProjectCreateSchema = z
   .object({
     name: z.string().trim().min(1).max(160),
@@ -50,6 +88,9 @@ export const ProjectCreateSchema = z
 
 export type ProjectCreateInput = z.infer<typeof ProjectCreateSchema>;
 export type ProjectRecord = z.infer<typeof ProjectSchema>;
+export type TaskRecord = z.infer<typeof TaskSchema>;
+export type TaskCreateInput = z.infer<typeof TaskCreateSchema>;
+export type TaskUpdateInput = z.infer<typeof TaskUpdateSchema>;
 export type InfrastructureRequirementRecord = z.infer<
   typeof InfrastructureRequirementSchema
 >;
@@ -57,11 +98,12 @@ export type InfrastructureRequirementRecord = z.infer<
 export interface PortfolioSummary {
   projectCount: number;
   infrastructureRequirementCount: number;
-  tasks: "unavailable-until-schema-confirmed";
+  taskCount: number;
 }
 
 export function summarizePortfolio(
   projects: readonly ProjectRecord[],
+  tasks: readonly TaskRecord[] = [],
 ): PortfolioSummary {
   return {
     projectCount: projects.length,
@@ -69,6 +111,6 @@ export function summarizePortfolio(
       (total, project) => total + (project.infra_requirements?.length ?? 0),
       0,
     ),
-    tasks: "unavailable-until-schema-confirmed",
+    taskCount: tasks.length,
   };
 }

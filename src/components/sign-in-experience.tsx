@@ -4,7 +4,6 @@ import { useActionState, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Building2,
   Eye,
   EyeOff,
   FolderKanban,
@@ -95,13 +94,12 @@ export function SignInExperience({
             <h2>{isRtl ? "ברוכים הבאים" : "Welcome back"}</h2>
             <p className="sign-in-card__description">
               {isRtl
-                ? "התחברו עם פרטי מנהל מקומיים. אין צורך בחיבור ל־Entra."
-                : "Use your local administrator credentials. Entra is not required."}
+                ? "התחברו באמצעות שם משתמש וסיסמה, או המשיכו עם חשבון Entra ID."
+                : "Sign in with a username and password, or continue with Entra ID."}
             </p>
           </div>
 
-          {localAdminReady ? (
-            <form action={formAction} className="sign-in-card__form">
+          <form action={formAction} className="sign-in-card__form">
               <label htmlFor="admin-username">
                 {isRtl ? "שם משתמש" : "Username"}
               </label>
@@ -114,7 +112,7 @@ export function SignInExperience({
                 spellCheck={false}
                 maxLength={128}
                 required
-                disabled={pending}
+                disabled={!localAdminReady || pending}
                 placeholder={isRtl ? "admin או root" : "admin or root"}
               />
               <label htmlFor="admin-password">
@@ -128,7 +126,7 @@ export function SignInExperience({
                   autoComplete="current-password"
                   maxLength={1024}
                   required
-                  disabled={pending}
+                  disabled={!localAdminReady || pending}
                 />
                 <button
                   className="sign-in-password-toggle"
@@ -162,7 +160,7 @@ export function SignInExperience({
               <button
                 className="sign-in-card__submit"
                 type="submit"
-                disabled={pending}
+                disabled={!localAdminReady || pending}
               >
                 <span>
                   {pending
@@ -175,8 +173,8 @@ export function SignInExperience({
                 </span>
                 {!pending && <BackArrow size={18} aria-hidden="true" />}
               </button>
-            </form>
-          ) : (
+          </form>
+          {!localAdminReady && (
             <div className="sign-in-card__notice" role="status">
               <p className="sign-in-card__notice-title">
                 {isRtl
@@ -191,24 +189,27 @@ export function SignInExperience({
             </div>
           )}
 
-          {entraReady && (
-            <>
-              <div className="sign-in-divider">
-                <span>{isRtl ? "או" : "or"}</span>
-              </div>
-              <form action={entraSignInAction}>
-                <button
-                  className="sign-in-card__entra"
-                  type="submit"
-                  disabled={pending}
-                >
-                  <Building2 className="entra-mark" size={19} aria-hidden="true" />
-                  {isRtl
-                    ? "התחברות ארגונית עם Microsoft Entra"
-                    : "Continue with Microsoft Entra"}
-                </button>
-              </form>
-            </>
+          <div className="sign-in-divider">
+            <span>{isRtl ? "או" : "or"}</span>
+          </div>
+          <form action={entraSignInAction}>
+            <button
+              className="sign-in-card__entra"
+              type="submit"
+              disabled={!entraReady || pending}
+            >
+              <span className="entra-mark" aria-hidden="true">
+                <span /><span /><span /><span />
+              </span>
+              {isRtl ? "התחבר עם Entra ID" : "Continue with Entra ID"}
+            </button>
+          </form>
+          {!entraReady && (
+            <p className="sign-in-card__notice" role="status">
+              {isRtl
+                ? "התחברות Entra ID תופעל לאחר הגדרת פרטי החיבור בשרת."
+                : "Entra ID sign-in will be available after its server configuration is set."}
+            </p>
           )}
 
           {!localAdminReady && !entraReady && (

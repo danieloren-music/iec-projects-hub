@@ -6,6 +6,7 @@ export type ApiErrorCode =
   | "BAD_REQUEST"
   | "UNAUTHORIZED"
   | "NOT_FOUND"
+  | "CONFLICT"
   | "SCHEMA_UNCONFIRMED"
   | "SERVICE_UNAVAILABLE"
   | "INTERNAL_ERROR";

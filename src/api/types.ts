@@ -3,6 +3,9 @@ import type {
   PortfolioSummary,
   ProjectCreateInput,
   ProjectRecord,
+  TaskCreateInput,
+  TaskRecord,
+  TaskUpdateInput,
 } from "@/lib/data/project-model";
 import type { ProjectAttachment } from "@/lib/data/project-attachment-policy";
 
@@ -19,5 +22,7 @@ export interface ApiClient {
   getInfrastructureRequirements(): Promise<
     InfrastructureRequirementRecord[]
   >;
-  getTasks(): Promise<never>;
+  getTasks(projectId?: string): Promise<TaskRecord[]>;
+  createTask(input: TaskCreateInput): Promise<TaskRecord>;
+  updateTask(taskId: string, input: TaskUpdateInput): Promise<TaskRecord>;
 }
