@@ -5,8 +5,7 @@ import type { NextFetchEvent, NextRequest } from "next/server";
 
 const authReady =
   isEntraIdConfigured &&
-  Boolean(process.env.AUTH_SESSION_SECRET) &&
-  process.env.AUTH_TRUST_HOST === "true";
+  Boolean(process.env.AUTH_SECRET);
 
 const authenticatedProxy = auth(
   (request: NextAuthRequest, event: NextFetchEvent) => {

@@ -12,8 +12,7 @@ export default async function SignInPage() {
   await connection();
   const ready =
     isEntraIdConfigured &&
-    Boolean(process.env.AUTH_SESSION_SECRET) &&
-    process.env.AUTH_TRUST_HOST === "true";
+    Boolean(process.env.AUTH_SECRET);
 
   return <SignInExperience ready={ready} signInAction={signInWithEntra} />;
 }

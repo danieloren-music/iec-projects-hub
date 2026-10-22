@@ -33,7 +33,7 @@ function hasSessionUser(value: unknown): value is {
 }
 
 export async function requireAuthenticatedUser(): Promise<AuthenticationResult> {
-  if (!isEntraIdConfigured || !process.env.AUTH_SESSION_SECRET) {
+  if (!isEntraIdConfigured || !process.env.AUTH_SECRET) {
     return {
       session: null,
       response: apiError(

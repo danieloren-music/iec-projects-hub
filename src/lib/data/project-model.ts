@@ -32,6 +32,8 @@ export const ProjectListSchema = z.array(ProjectSchema);
 export const ProjectCreateSchema = z
   .object({
     name: z.string().trim().min(1).max(160),
+    business_pm: z.string().trim().min(1).max(160),
+    infra_lead: z.string().trim().min(1).max(160),
   })
   .strict();
 

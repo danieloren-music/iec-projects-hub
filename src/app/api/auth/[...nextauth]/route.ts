@@ -2,12 +2,11 @@ import { handlers } from "@/auth";
 import { apiUnavailable } from "@/lib/api/errors";
 
 const authReady =
-  Boolean(process.env.AUTH_SESSION_SECRET) &&
-  process.env.AUTH_TRUST_HOST === "true" &&
+  Boolean(process.env.AUTH_SECRET) &&
   Boolean(
     process.env.ENTRA_CLIENT_ID &&
       process.env.ENTRA_CLIENT_SECRET &&
-      process.env.ENTRA_ISSUER,
+      process.env.ENTRA_TENANT_ID,
   );
 
 function unconfigured() {

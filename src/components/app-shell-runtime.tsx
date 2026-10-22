@@ -13,8 +13,7 @@ export async function AppShellRuntime({
 
   const authConfigured =
     isEntraIdConfigured &&
-    Boolean(process.env.AUTH_SESSION_SECRET) &&
-    process.env.AUTH_TRUST_HOST === "true";
+    Boolean(process.env.AUTH_SECRET);
   const session = authConfigured ? await auth() : null;
   if (!session?.user) {
     return children;

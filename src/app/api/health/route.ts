@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   return withApiLogging(request, async () => {
     const services = {
       authentication:
-        isEntraIdConfigured && Boolean(process.env.AUTH_SESSION_SECRET)
+        isEntraIdConfigured && Boolean(process.env.AUTH_SECRET)
           ? "configured"
           : "unconfigured",
       database:

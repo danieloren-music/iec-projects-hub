@@ -55,8 +55,8 @@ Keep the existing Next.js Route Handlers as the POC API; this is not an Azure Fu
 |---------------|------------|---------------------|----------------------|----------------|
 | Vercel (external to Azure; current host) | Host the existing Next.js POC | — | `npm run dev` | Essential |
 | Supabase PostgreSQL (external to Azure; current datastore) | Primary relational persistence for project, task, and infrastructure tracking | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Set locally in `.env.local` from the user's Supabase project; no committed fallback | Essential |
-| Supabase Storage (external to Azure; current file storage) | Project attachments under per-project paths; bucket is public as currently configured | Supabase URL, anon key, and server-only service-role key | Use the existing `project-documents` bucket; apply `supabase/migrations/20261022153000_project_attachments.sql` for metadata | Essential |
-| Google Gemini API (external to Azure; optional) | Optional Lin project Q&A; enhancement only | `GEMINI_API_KEY` | Unset; keep Lin unavailable until configured | Enhancement |
+| Supabase Storage (external to Azure; current file storage) | Project attachments under per-project paths; bucket is public as currently configured | `SUPABASE_SERVICE_ROLE_KEY` (server-only), plus Supabase URL and anon key | Use the existing `project-documents` bucket; apply `supabase/migrations/20261022153000_project_attachments.sql` for metadata | Essential for attachments |
+| Google Gemini API (external to Azure; optional) | Optional Lin general PMO Q&A; enhancement only | `GEMINI_API_KEY`, `LIN_EXTERNAL_AI_ENABLED` | Unset / `false`; enable only after approval | Enhancement |
 
 No Azure service is required for the current Vercel-hosted POC. Choose an Azure hosting service and any related migration work during a separate future Azure deployment plan; do not treat Vercel or Supabase as Azure resources.
 

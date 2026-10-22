@@ -42,13 +42,31 @@ describe("portfolio model", () => {
     });
   });
 
-  it("accepts only a trimmed project name for the minimal create contract", () => {
-    expect(ProjectCreateSchema.parse({ name: "  New project  " })).toEqual({
+  it("requires a project name and both owners when creating a project", () => {
+    expect(
+      ProjectCreateSchema.parse({
+        name: "  New project  ",
+        business_pm: "  Implementation owner  ",
+        infra_lead: "  Infrastructure owner  ",
+      }),
+    ).toEqual({
       name: "New project",
+      business_pm: "Implementation owner",
+      infra_lead: "Infrastructure owner",
     });
     expect(ProjectCreateSchema.safeParse({ name: " " }).success).toBe(false);
     expect(
-      ProjectCreateSchema.safeParse({ name: "Project", code: "PRJ" }).success,
+      ProjectCreateSchema.safeParse({
+        name: "Project",
+        business_pm: "Owner",
+      }).success,
+    ).toBe(false);
+    expect(
+      ProjectCreateSchema.safeParse({
+        name: "Project",
+        business_pm: " ",
+        infra_lead: "Owner",
+      }).success,
     ).toBe(false);
   });
 

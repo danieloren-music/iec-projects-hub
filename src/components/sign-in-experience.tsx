@@ -46,8 +46,8 @@ export function SignInExperience({
             </p>
             <p>
               {isRtl
-                ? "יש להגדיר AUTH_SESSION_SECRET, AUTH_TRUST_HOST=true, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET ו־ENTRA_ISSUER בסביבת הפיתוח או הפריסה."
-                : "Configure AUTH_SESSION_SECRET, AUTH_TRUST_HOST=true, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET, and ENTRA_ISSUER in the local or deployment environment."}
+                ? "יש להגדיר AUTH_SECRET, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET ו־ENTRA_TENANT_ID בסביבת הפיתוח או הפריסה."
+                : "Configure AUTH_SECRET, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET, and ENTRA_TENANT_ID in the local or deployment environment."}
             </p>
           </div>
         )}

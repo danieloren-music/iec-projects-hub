@@ -48,8 +48,8 @@ function ProjectWorkspaceContent() {
               {[
                 [isRtl ? 'קוד' : 'Code', projectResource.state.data.code],
                 [isRtl ? 'סקירה' : 'Overview', projectResource.state.data.overview],
-                [isRtl ? 'מנהל עסקי' : 'Business PM', projectResource.state.data.business_pm],
-                [isRtl ? 'מוביל תשתיות' : 'Infrastructure lead', projectResource.state.data.infra_lead],
+                [isRtl ? 'אחראי יישום' : 'Implementation owner', projectResource.state.data.business_pm],
+                [isRtl ? 'אחראי פרויקט תשתיות' : 'Infrastructure project owner', projectResource.state.data.infra_lead],
                 [isRtl ? 'מצב כולל' : 'Overall status', projectResource.state.data.overall_status],
                 [isRtl ? 'מצב RAG' : 'RAG status', projectResource.state.data.rag_status],
                 [isRtl ? 'יעד עלייה לאוויר' : 'Target go-live', projectResource.state.data.target_go_live],
